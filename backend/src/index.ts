@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db";
 import routes from "./routes";
 import authRoutes from "./routes/auth.routes";
+import userRoutes from "./routes/user.routes";
+
 
 dotenv.config();
 
@@ -12,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 app.use(Express.json());
 app.use("/api", routes);
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 
 app.get("/", (req, res) => {
     res.send("Api works");
