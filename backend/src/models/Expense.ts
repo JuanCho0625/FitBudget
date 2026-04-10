@@ -1,24 +1,45 @@
- import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export interface IExpense extends Document {
-  userId: mongoose.Types.ObjectId;
-  amount: number;
-  category: string;
-  description?: string;
-  date: Date;
-  budgetPercentage: number;
+    amount: number;
+    description: string;
+    date: Date;
+    categoryId: mongoose.Types.ObjectId;
+    userId: mongoose.Types.ObjectId;
 }
 
 const expenseSchema = new Schema<IExpense>(
-  {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    amount: { type: Number, required: [true, 'El monto es obligatorio'], min: [0.01, 'El monto debe ser mayor a 0'] },
-    category: { type: String, enum: ['comida', 'transporte', 'ocio', 'suscripciones', 'renta', 'escuela', 'otro'], default: 'otro' },
-    description: { type: String, trim: true },
-    date: { type: Date, default: Date.now },
-    budgetPercentage: { type: Number, default: 0 },
-  },
-  { timestamps: true }
+    {
+        amount: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+        description: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        date: {
+            type: Date,
+            required: true,
+            default: Date.now,
+        },
+        categoryId: {
+            type: Schema.Types.ObjectId,
+            ref: "Category",
+            required: true,
+        },
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+            index: true,
+        },
+    },
+    {
+        timestamps: true,
+    },
 );
 
-export default mongoose.model<IExpense>('Expense', expenseSchema);
+export const Expense = model<IExpense>("Expense", expenseSchema);
