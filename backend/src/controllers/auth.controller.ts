@@ -24,11 +24,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Crear usuario (bcrypt ya se aplica en el modelo)
+    // Crear usuario
     const user = new User({
       name,
       email,
       password,
+      role: "USER", // importante para roles
     });
 
     await user.save();
@@ -38,7 +39,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
   } catch (error: any) {
-    // Manejo específico de error de Mongo (email duplicado)
     if (error.code === 11000) {
       res.status(400).json({ message: "El email ya está registrado" });
       return;
@@ -73,7 +73,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Comparar contraseña (bcrypt)
+    // Comparar contraseña
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -81,9 +81,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generar token JWT
+    // IMPORTANTE: incluir role en el token
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET as string,
       { expiresIn: "1d" }
     );
