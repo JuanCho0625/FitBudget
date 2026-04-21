@@ -14,7 +14,7 @@ app.use(Express.json());
 app.use("/api", routes);
 
 app.get("/", (req, res) => {
-  res.json({ message: "FitBudget API funcionando ✅" });
+  res.json({ message: "FitBudget API funcionando " });
 });
 
 const startApp = async () => {
