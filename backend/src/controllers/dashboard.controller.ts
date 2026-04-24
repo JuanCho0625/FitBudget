@@ -45,7 +45,7 @@ export const getExpensesByCategory = async (req: Request, res: Response) => {
     const data = await Expense.aggregate([
       {
         $group: {
-          _id: "$category",
+          _id: "$categoryId", // ✅ CAMBIO: antes estaba "$category" y causaba _id: null
           total: { $sum: "$amount" },
         },
       },
