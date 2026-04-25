@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { savingGoal as SavingGoal } from "../models/SavingGoal";
 import { User } from "../models/User";
+import { SavingGoal } from "../models/SavingGoal";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { sendEmail } from "../services/email.service";
 
@@ -65,7 +65,7 @@ export const updateSavingGoal = async (req: AuthRequest, res: Response): Promise
 
     await goal.save();
 
-    // ── Correo: meta completada ───────────────────────────────────────────
+    // ── Correo: meta completada 
     if (justCompleted) {
       const user = await User.findById(req.userId);
       if (user) await sendEmail(user.email, "goalCompleted", { userName: user.name, goalName: goal.goalName, targetAmount: goal.targetAmount });

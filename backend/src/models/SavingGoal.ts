@@ -47,4 +47,4 @@ const savingGoalSchema = new Schema<ISavingGoal>(
   }
 );
 
-export const savingGoal = model<ISavingGoal>("SavingGoal", savingGoalSchema);
+export const SavingGoal = model<ISavingGoal>("SavingGoal", savingGoalSchema);

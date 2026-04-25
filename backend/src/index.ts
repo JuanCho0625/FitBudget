@@ -2,11 +2,26 @@ import Express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db";
 import routes from "./routes";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { setupSocketHandlers } from "./sockets"
 
 dotenv.config();
 
 const app = Express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
+
+//Configurar socket.io
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*" // Cambiar despues por la url del frontend
+  }
+})
+
+setupSocketHandlers(io);
+
+app.set('io', io);
 
 app.use(Express.json());
 
@@ -20,7 +35,7 @@ app.get("/", (req, res) => {
 const startApp = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Servidor corriendo en el puerto ${PORT}`);
     });
   } catch (error) {

@@ -2,18 +2,20 @@ import { Router } from "express";
 import {
   getExpenses,
   getExpenseById,
-  createExpense,
-  updateExpense,
-  deleteExpense,
-} from "../controllers/expense.controller";
+} from "../controllers/expense.controller";  
+import { 
+  createTransaction, 
+  updateTransaction, 
+  deleteTransaction 
+} from "../controllers/transactions.controller";  
 import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
-
+ 
 router.get("/", authMiddleware, getExpenses);
 router.get("/:id", authMiddleware, getExpenseById);
-router.post("/", authMiddleware, createExpense);
-router.put("/:id", authMiddleware, updateExpense);
-router.delete("/:id", authMiddleware, deleteExpense);
+router.post("/", authMiddleware, createTransaction);
+router.put("/:id", authMiddleware, updateTransaction);
+router.delete("/:id", authMiddleware, deleteTransaction);
 
 export default router;
