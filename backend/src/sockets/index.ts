@@ -3,7 +3,7 @@ import { ClientToServerEvents, ServerToClientEvents } from "./ISocket";
  
 export const setupSocketHandlers = (io: Server<ClientToServerEvents, ServerToClientEvents>) => {
     io.on('connection', (socket) => {
-        console.log(`Usuario conectad: ${socket.id}` )
+        console.log(`Usuario conectado: ${socket.id}` )
 
         socket.on('join-user-room', (userId => {
             socket.join(userId)

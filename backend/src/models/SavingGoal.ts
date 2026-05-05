@@ -6,7 +6,7 @@ export interface ISavingGoal extends Document {
   targetAmount: number;
   currentAmount: number;
   deadline: Date;
-  status: string;   
+  status: 'active' | 'completed' | 'paused';   
 }
 
 const savingGoalSchema = new Schema<ISavingGoal>(
@@ -25,7 +25,7 @@ const savingGoalSchema = new Schema<ISavingGoal>(
     targetAmount: { 
       type: Number, 
       required: true,
-      min: 0 
+      min: 1 
     },
     currentAmount: { 
       type: Number, 

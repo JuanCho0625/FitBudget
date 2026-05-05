@@ -14,6 +14,8 @@ export interface INotification {
 export interface ServerToClientEvents {
   "update-dashboard": (data: IFinancialSummary) => void;
   "notification": (data: INotification) => void;
+  "update-saving-goal": (data: any) => void;
+  "delete-saving-goal": (goalId: string) => void;
 }
 
 export interface ClientToServerEvents {
