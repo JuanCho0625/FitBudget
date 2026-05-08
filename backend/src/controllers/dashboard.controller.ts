@@ -1,110 +1,94 @@
-import { Request, Response } from "express";
+ import { Response } from "express";
 import { Expense } from "../models/Expense";
 import { Income } from "../models/Income";
-
-// resumen general
-export const getSummary = async (req: Request, res: Response) => {
-  try {
-    const totalIncome = await Income.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$amount" },
-        },
-      },
-    ]);
-
-    const totalExpenses = await Expense.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$amount" },
-        },
-      },
-    ]);
-
-    const income = totalIncome[0]?.total || 0;
-    const expenses = totalExpenses[0]?.total || 0;
-
-    res.json({
-      totalIncome: income,
-      totalExpenses: expenses,
-      balance: income - expenses,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error obteniendo resumen",
-    });
-  }
+import { AuthRequest } from "../middlewares/auth.middleware";
+ 
+// ======================
+// GET SUMMARY (filtrado por usuario)
+// ======================
+export const getSummary = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.userId;
+ 
+        const totalIncomeResult = await Income.aggregate([
+            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
+            { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]);
+ 
+        const totalExpensesResult = await Expense.aggregate([
+            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
+            { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]);
+ 
+        const totalIncomes = totalIncomeResult[0]?.total || 0;
+        const totalExpenses = totalExpensesResult[0]?.total || 0;
+ 
+        res.json({
+            totalIncomes,
+            totalExpenses,
+            balance: totalIncomes - totalExpenses,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error obteniendo resumen" });
+    }
 };
-
-// gastos por categoría
-export const getExpensesByCategory = async (req: Request, res: Response) => {
-  try {
-    const data = await Expense.aggregate([
-      {
-        $group: {
-          _id: "$categoryId", // ✅ CAMBIO: antes estaba "$category" y causaba _id: null
-          total: { $sum: "$amount" },
-        },
-      },
-    ]);
-
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error obteniendo gastos por categoría",
-    });
-  }
+ 
+// ======================
+// GASTOS POR CATEGORÍA (del usuario)
+// ======================
+export const getExpensesByCategory = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.userId;
+ 
+        const data = await Expense.aggregate([
+            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
+            { $group: { _id: "$categoryId", total: { $sum: "$amount" } } },
+        ]);
+ 
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error obteniendo gastos por categoría" });
+    }
 };
-
-
-// gastos por mes
-export const getMonthlyExpenses = async (req: Request, res: Response) => {
-  try {
-    const data = await Expense.aggregate([
-      {
-        $group: {
-          _id: { $month: "$date" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { "_id": 1 },
-      },
-    ]);
-
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error obteniendo gastos mensuales",
-    });
-  }
+ 
+// ======================
+// GASTOS POR MES (del usuario)
+// ======================
+export const getMonthlyExpenses = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.userId;
+ 
+        const data = await Expense.aggregate([
+            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
+            { $group: { _id: { $month: "$date" }, total: { $sum: "$amount" } } },
+            { $sort: { _id: 1 } },
+        ]);
+ 
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error obteniendo gastos mensuales" });
+    }
 };
-
-//ingresos por mes
-export const getMonthlyIncome = async (req: Request, res: Response) => {
-  try {
-    const data = await Income.aggregate([
-      {
-        $group: {
-          _id: { $month: "$date" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { "_id": 1 },
-      },
-    ]);
-
-    res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Error obteniendo ingresos mensuales",
-    });
-  }
+ 
+// ======================
+// INGRESOS POR MES (del usuario)
+// ======================
+export const getMonthlyIncome = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.userId;
+ 
+        const data = await Income.aggregate([
+            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
+            { $group: { _id: { $month: "$date" }, total: { $sum: "$amount" } } },
+            { $sort: { _id: 1 } },
+        ]);
+ 
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error obteniendo ingresos mensuales" });
+    }
 };

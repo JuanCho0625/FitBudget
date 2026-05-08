@@ -2,6 +2,7 @@ import { Response } from "express";
 import { Expense } from "../models/Expense";
 import { Budget } from "../models/Budget";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import mongoose from "mongoose";
 
 // ======================
 // GET ALL EXPENSES (del usuario)
@@ -38,6 +39,7 @@ export const getExpenses = async (
 // ======================
 // GET EXPENSE BY ID
 // ======================
+ 
 export const getExpenseById = async (
   req: AuthRequest,
   res: Response
@@ -50,12 +52,15 @@ export const getExpenseById = async (
 
     if (!expense) {
       res.status(404).json({ message: "Gasto no encontrado" });
-      return;
+      return; // <--- Return solo, sin devolver el objeto res
     }
 
     res.json(expense);
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+        res.status(400).json({ message: "ID con formato inválido" });
+        return; // <--- Return solo
+    }
     res.status(500).json({ message: "Error al obtener gasto" });
   }
 };
- 

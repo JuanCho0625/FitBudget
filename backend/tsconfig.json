@@ -1,15 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "types": ["node", "jest"], // <-- ESTO ES VITAL
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./" 
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": [
+    "src/**/*", 
+    "tests/**/*" // <-- ASEGÚRATE DE QUE ESTO ESTÉ AQUÍ
+  ],
+  "exclude": ["node_modules"]
 }
