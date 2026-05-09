@@ -1,3 +1,42 @@
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     SavingGoal:
+ *       type: object
+ *       required:
+ *         - goalName
+ *         - targetAmount
+ *         - deadline
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109cd
+ *         goalName:
+ *           type: string
+ *           description: Nombre de la meta de ahorro
+ *           example: "Viaje de graduación"
+ *         targetAmount:
+ *           type: number
+ *           minimum: 1
+ *           example: 15000
+ *         currentAmount:
+ *           type: number
+ *           minimum: 0
+ *           default: 0
+ *           example: 2500
+ *         deadline:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha límite para alcanzar la meta
+ *         status:
+ *           type: string
+ *           enum: [active, completed, paused]
+ *           default: active
+ */
+
+
 import mongoose, {Schema, model, Document} from "mongoose";
 
 export interface ISavingGoal extends Document {

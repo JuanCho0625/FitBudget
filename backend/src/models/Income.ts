@@ -1,3 +1,38 @@
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Income:
+ *       type: object
+ *       required:
+ *         - categoryId
+ *         - amount
+ *         - description
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109cb
+ *         userId:
+ *           type: string
+ *           description: ID del usuario (extraído del token)
+ *         categoryId:
+ *           type: string
+ *           description: ID de la categoría de ingresos
+ *           example: 60d0fe4f5311236168a109cc
+ *         amount:
+ *           type: number
+ *           minimum: 0
+ *           description: El monto no puede ser negativo
+ *           example: 1200.00
+ *         description:
+ *           type: string
+ *           example: "Beca ITESO"
+ *         date:
+ *           type: string
+ *           format: date-time
+ *           default: now
+ */
+
 import mongoose, { Document, model, Schema } from "mongoose";
 
 export interface IIncome extends Document {
