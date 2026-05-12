@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
+import IncomesPage from "./pages/IncomesPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -29,6 +30,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <ExpensesPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/incomes"
+                    element={
+                        <ProtectedRoute>
+                            <IncomesPage />
                         </ProtectedRoute>
                     }
                 />
