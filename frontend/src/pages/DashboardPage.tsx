@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getDashboardSummary } from "../services/dashboardService";
+import { getExpensesByCategory } from "../services/chartService";
+
 import SummaryCard from "../components/SummaryCard";
 
 function DashboardPage() {
@@ -23,8 +25,19 @@ function DashboardPage() {
                 console.log("Dashboard summary:", data);
 
                 setSummary(data);
+
+                const categoryData =
+                    await getExpensesByCategory();
+
+                console.log(
+                    "Expenses by category:",
+                    categoryData
+                );
             } catch (error) {
-                console.error("Dashboard error:", error);
+                console.error(
+                    "Dashboard error:",
+                    error
+                );
             }
         };
 
