@@ -7,6 +7,8 @@ import {
     deleteExpense,
 } from "../services/expenseService";
 
+import Sidebar from "../components/Sidebar";
+
 function ExpensesPage() {
     const [expenses, setExpenses] =
         useState<any[]>([]);
@@ -128,240 +130,266 @@ function ExpensesPage() {
     return (
         <div
             style={{
-                padding: "40px",
-                maxWidth: "1200px",
-                margin: "0 auto",
+                display: "flex",
             }}
         >
-            <h1
+            <Sidebar />
+
+            <div
                 style={{
-                    marginBottom: "30px",
-                }}
-            >
-                Expenses
-            </h1>
-
-            <form
-                onSubmit={handleCreate}
-                style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginBottom: "30px",
-                    flexWrap: "wrap",
-                }}
-            >
-                <input
-                    type="text"
-                    placeholder="Description"
-                    value={description}
-                    onChange={(event) =>
-                        setDescription(
-                            event.target.value
-                        )
-                    }
-                    style={{
-                        padding: "10px",
-                    }}
-                />
-
-                <input
-                    type="number"
-                    placeholder="Amount"
-                    value={amount}
-                    onChange={(event) =>
-                        setAmount(
-                            event.target.value
-                        )
-                    }
-                    style={{
-                        padding: "10px",
-                    }}
-                />
-
-                <input
-                    type="date"
-                    value={date}
-                    onChange={(event) =>
-                        setDate(
-                            event.target.value
-                        )
-                    }
-                    style={{
-                        padding: "10px",
-                    }}
-                />
-
-                <button
-                    type="submit"
-                    style={{
-                        padding:
-                            "10px 20px",
-                        cursor: "pointer",
-                    }}
-                >
-                    {editingId
-                        ? "Update Expense"
-                        : "Add Expense"}
-                </button>
-            </form>
-
-            <table
-                style={{
+                    marginLeft: "250px",
+                    padding: "40px",
                     width: "100%",
-                    borderCollapse:
-                        "collapse",
-                    background: "white",
-                    borderRadius: "10px",
-                    overflow: "hidden",
                 }}
             >
-                <thead>
-                <tr
+                <h1
                     style={{
-                        background:
-                            "#f3f4f6",
+                        marginBottom: "30px",
                     }}
                 >
-                    <th
+                    Expenses
+                </h1>
+
+                <form
+                    onSubmit={handleCreate}
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        marginBottom: "30px",
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <input
+                        type="text"
+                        placeholder="Description"
+                        value={description}
+                        onChange={(
+                            event
+                        ) =>
+                            setDescription(
+                                event.target
+                                    .value
+                            )
+                        }
                         style={{
                             padding:
-                                "15px",
-                            textAlign:
-                                "left",
+                                "10px",
                         }}
-                    >
-                        Description
-                    </th>
+                    />
 
-                    <th
+                    <input
+                        type="number"
+                        placeholder="Amount"
+                        value={amount}
+                        onChange={(
+                            event
+                        ) =>
+                            setAmount(
+                                event.target
+                                    .value
+                            )
+                        }
                         style={{
                             padding:
-                                "15px",
-                            textAlign:
-                                "left",
+                                "10px",
                         }}
-                    >
-                        Amount
-                    </th>
+                    />
 
-                    <th
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(
+                            event
+                        ) =>
+                            setDate(
+                                event.target
+                                    .value
+                            )
+                        }
                         style={{
                             padding:
-                                "15px",
-                            textAlign:
-                                "left",
+                                "10px",
                         }}
-                    >
-                        Date
-                    </th>
+                    />
 
-                    <th
+                    <button
+                        type="submit"
                         style={{
                             padding:
-                                "15px",
-                            textAlign:
-                                "left",
+                                "10px 20px",
+                            cursor:
+                                "pointer",
                         }}
                     >
-                        Actions
-                    </th>
-                </tr>
-                </thead>
+                        {editingId
+                            ? "Update Expense"
+                            : "Add Expense"}
+                    </button>
+                </form>
 
-                <tbody>
-                {expenses.map(
-                    (expense) => (
-                        <tr
-                            key={
-                                expense._id
-                            }
+                <table
+                    style={{
+                        width: "100%",
+                        borderCollapse:
+                            "collapse",
+                        background:
+                            "white",
+                        borderRadius:
+                            "10px",
+                        overflow:
+                            "hidden",
+                    }}
+                >
+                    <thead>
+                    <tr
+                        style={{
+                            background:
+                                "#f3f4f6",
+                        }}
+                    >
+                        <th
                             style={{
-                                borderBottom:
-                                    "1px solid #e5e7eb",
+                                padding:
+                                    "15px",
+                                textAlign:
+                                    "left",
                             }}
                         >
-                            <td
-                                style={{
-                                    padding:
-                                        "15px",
-                                }}
-                            >
-                                {
-                                    expense.description
+                            Description
+                        </th>
+
+                        <th
+                            style={{
+                                padding:
+                                    "15px",
+                                textAlign:
+                                    "left",
+                            }}
+                        >
+                            Amount
+                        </th>
+
+                        <th
+                            style={{
+                                padding:
+                                    "15px",
+                                textAlign:
+                                    "left",
+                            }}
+                        >
+                            Date
+                        </th>
+
+                        <th
+                            style={{
+                                padding:
+                                    "15px",
+                                textAlign:
+                                    "left",
+                            }}
+                        >
+                            Actions
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {expenses.map(
+                        (
+                            expense
+                        ) => (
+                            <tr
+                                key={
+                                    expense._id
                                 }
-                            </td>
-
-                            <td
                                 style={{
-                                    padding:
-                                        "15px",
+                                    borderBottom:
+                                        "1px solid #e5e7eb",
                                 }}
                             >
-                                $
-                                {
-                                    expense.amount
-                                }
-                            </td>
-
-                            <td
-                                style={{
-                                    padding:
-                                        "15px",
-                                }}
-                            >
-                                {new Date(
-                                    expense.date
-                                ).toLocaleDateString()}
-                            </td>
-
-                            <td
-                                style={{
-                                    padding:
-                                        "15px",
-                                    display:
-                                        "flex",
-                                    gap: "10px",
-                                }}
-                            >
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handleEdit(
-                                            expense
-                                        )
-                                    }
+                                <td
                                     style={{
                                         padding:
-                                            "8px 12px",
-                                        cursor:
-                                            "pointer",
+                                            "15px",
                                     }}
                                 >
-                                    Edit
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handleDelete(
-                                            expense._id
-                                        )
+                                    {
+                                        expense.description
                                     }
+                                </td>
+
+                                <td
                                     style={{
                                         padding:
-                                            "8px 12px",
-                                        cursor:
-                                            "pointer",
+                                            "15px",
                                     }}
                                 >
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    )
-                )}
-                </tbody>
-            </table>
+                                    $
+                                    {
+                                        expense.amount
+                                    }
+                                </td>
+
+                                <td
+                                    style={{
+                                        padding:
+                                            "15px",
+                                    }}
+                                >
+                                    {new Date(
+                                        expense.date
+                                    ).toLocaleDateString()}
+                                </td>
+
+                                <td
+                                    style={{
+                                        padding:
+                                            "15px",
+                                        display:
+                                            "flex",
+                                        gap: "10px",
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleEdit(
+                                                expense
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "8px 12px",
+                                            cursor:
+                                                "pointer",
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleDelete(
+                                                expense._id
+                                            )
+                                        }
+                                        style={{
+                                            padding:
+                                                "8px 12px",
+                                            cursor:
+                                                "pointer",
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        )
+                    )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

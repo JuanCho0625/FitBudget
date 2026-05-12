@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { getDashboardSummary } from "../services/dashboardService";
 
@@ -13,9 +12,9 @@ import SummaryCard from "../components/SummaryCard";
 import ExpensesPieChart from "../components/charts/ExpensesPieChart";
 import MonthlyExpensesChart from "../components/charts/MonthlyExpensesChart";
 
-function DashboardPage() {
-    const navigate = useNavigate();
+import Sidebar from "../components/Sidebar";
 
+function DashboardPage() {
     const [summary, setSummary] =
         useState<any>(null);
 
@@ -28,12 +27,6 @@ function DashboardPage() {
         monthlyExpenses,
         setMonthlyExpenses,
     ] = useState<any[]>([]);
-
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-
-        navigate("/");
-    };
 
     useEffect(() => {
         const fetchDashboardData =
@@ -84,69 +77,81 @@ function DashboardPage() {
     }, []);
 
     return (
-        <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1>
+        <div
+            style={{
+                display: "flex",
+            }}
+        >
+            <Sidebar />
+
+            <div
+                style={{
+                    marginLeft: "250px",
+                    padding: "40px",
+                    width: "100%",
+                }}
+            >
+                <h1
+                    style={{
+                        marginBottom: "30px",
+                    }}
+                >
                     FitBudget Dashboard
                 </h1>
 
-                <button
-                    onClick={handleLogout}
-                >
-                    Logout
-                </button>
-            </div>
+                {summary ? (
+                    <>
+                        <div className="summary-container">
+                            <SummaryCard
+                                title="Total Income"
+                                value={
+                                    summary.totalIncomes
+                                }
+                            />
 
-            {summary ? (
-                <>
-                    <div className="summary-container">
-                        <SummaryCard
-                            title="Total Income"
-                            value={
-                                summary.totalIncomes
-                            }
-                        />
+                            <SummaryCard
+                                title="Total Expenses"
+                                value={
+                                    summary.totalExpenses
+                                }
+                            />
 
-                        <SummaryCard
-                            title="Total Expenses"
-                            value={
-                                summary.totalExpenses
-                            }
-                        />
+                            <SummaryCard
+                                title="Balance"
+                                value={
+                                    summary.balance
+                                }
+                            />
+                        </div>
 
-                        <SummaryCard
-                            title="Balance"
-                            value={
-                                summary.balance
-                            }
-                        />
-                    </div>
+                        <div
+                            style={{
+                                marginTop: "40px",
+                            }}
+                        >
+                            <h2>
+                                Expenses by Category
+                            </h2>
 
-                    <div
-                        style={{
-                            marginTop: "40px",
-                        }}
-                    >
-                        <h2>
-                            Expenses by Category
-                        </h2>
+                            <ExpensesPieChart
+                                data={
+                                    expensesByCategory
+                                }
+                            />
+                        </div>
 
-                        <ExpensesPieChart
+                        <MonthlyExpensesChart
                             data={
-                                expensesByCategory
+                                monthlyExpenses
                             }
                         />
-                    </div>
-
-                    <MonthlyExpensesChart
-                        data={monthlyExpenses}
-                    />
-                </>
-            ) : (
-                <p>
-                    Loading dashboard...
-                </p>
-            )}
+                    </>
+                ) : (
+                    <p>
+                        Loading dashboard...
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
