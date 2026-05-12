@@ -4,6 +4,8 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
+import SavingGoalsPage from "./pages/SavingGoalsPage";
+import BudgetsPage from "./pages/BudgetsPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -39,6 +41,24 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <IncomesPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/saving-goals"
+                    element={
+                        <ProtectedRoute>
+                            <SavingGoalsPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/budgets"
+                    element={
+                        <ProtectedRoute>
+                            <BudgetsPage />
                         </ProtectedRoute>
                     }
                 />

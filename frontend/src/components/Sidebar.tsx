@@ -59,12 +59,26 @@ function Sidebar() {
                 >
                     Incomes
                 </Link>
+
+                <Link
+                    to="/saving-goals"
+                    style={linkStyle}
+                >
+                    Saving Goals
+                </Link>
             </nav>
+
+            <Link
+                to="/budgets"
+                style={linkStyle}
+            >
+                Budgets
+            </Link>
 
             <button
                 onClick={handleLogout}
                 style={{
-                    marginTop: "auto",
+                    marginTop: "40px",
                     padding: "12px",
                     border: "none",
                     borderRadius: "8px",

@@ -7,10 +7,17 @@ import {
     deleteExpense,
 } from "../services/expenseService";
 
+import {
+    getCategories,
+} from "../services/categoryService";
+
 import Sidebar from "../components/Sidebar";
 
 function ExpensesPage() {
     const [expenses, setExpenses] =
+        useState<any[]>([]);
+
+    const [categories, setCategories] =
         useState<any[]>([]);
 
     const [description, setDescription] =
@@ -20,6 +27,9 @@ function ExpensesPage() {
         useState("");
 
     const [date, setDate] =
+        useState("");
+
+    const [categoryId, setCategoryId] =
         useState("");
 
     const [editingId, setEditingId] =
@@ -37,6 +47,18 @@ function ExpensesPage() {
                 );
 
                 setExpenses(data);
+
+                const categoriesData =
+                    await getCategories();
+
+                setCategories(
+                    categoriesData
+                );
+
+                console.log(
+                    "Categories:",
+                    categoriesData
+                );
             } catch (error) {
                 console.error(
                     "Expenses error:",
@@ -64,6 +86,7 @@ function ExpensesPage() {
                             amount:
                                 Number(amount),
                             date,
+                            categoryId,
                         }
                     );
 
@@ -74,12 +97,14 @@ function ExpensesPage() {
                         amount:
                             Number(amount),
                         date,
+                        categoryId,
                     });
                 }
 
                 setDescription("");
                 setAmount("");
                 setDate("");
+                setCategoryId("");
 
                 fetchExpenses();
             } catch (error) {
@@ -124,6 +149,10 @@ function ExpensesPage() {
 
         setDate(
             expense.date.split("T")[0]
+        );
+
+        setCategoryId(
+            expense.categoryId
         );
     };
 
@@ -211,6 +240,45 @@ function ExpensesPage() {
                                 "10px",
                         }}
                     />
+
+                    <select
+                        value={categoryId}
+                        onChange={(
+                            event
+                        ) =>
+                            setCategoryId(
+                                event.target
+                                    .value
+                            )
+                        }
+                        style={{
+                            padding:
+                                "10px",
+                        }}
+                    >
+                        <option value="">
+                            Select Category
+                        </option>
+
+                        {categories.map(
+                            (
+                                category
+                            ) => (
+                                <option
+                                    key={
+                                        category._id
+                                    }
+                                    value={
+                                        category._id
+                                    }
+                                >
+                                    {
+                                        category.name
+                                    }
+                                </option>
+                            )
+                        )}
+                    </select>
 
                     <button
                         type="submit"

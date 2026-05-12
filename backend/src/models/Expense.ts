@@ -24,49 +24,72 @@
  *           description: Fecha del gasto
  */
 
-import mongoose, { Schema, model, Document } from "mongoose";
+import mongoose, {
+    Schema,
+    model,
+    Document,
+} from "mongoose";
 
-export interface IExpense extends Document {
+export interface IExpense
+    extends Document {
     amount: number;
+
     description: string;
+
     date: Date;
-    categoryId: mongoose.Types.ObjectId;
-    userId: mongoose.Types.ObjectId;
+
+    categoryId:
+        mongoose.Types.ObjectId;
+
+    userId:
+        mongoose.Types.ObjectId;
 }
 
+const expenseSchema =
+    new Schema<IExpense>(
+        {
+            amount: {
+                type: Number,
+                required: true,
+                min: 0,
+            },
 
-const expenseSchema = new Schema<IExpense>(
-    {
-        amount: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        description: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-            default: Date.now,
-        },
-        categoryId: {
-            type: Schema.Types.ObjectId,
-            ref: "Category",
-            required: true,
-        },
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-            index: true,
-        },
-    },
-    {
-        timestamps: true,
-    },
-);
+            description: {
+                type: String,
+                required: true,
+                trim: true,
+            },
 
-export const Expense = model<IExpense>("Expense", expenseSchema);
+            categoryId: {
+                type:
+                Schema.Types
+                    .ObjectId,
+                ref: "Category",
+                required: true,
+            },
+
+            date: {
+                type: Date,
+                required: true,
+                default: Date.now,
+            },
+
+            userId: {
+                type:
+                Schema.Types
+                    .ObjectId,
+                ref: "User",
+                required: true,
+                index: true,
+            },
+        },
+        {
+            timestamps: true,
+        }
+    );
+
+export const Expense =
+    model<IExpense>(
+        "Expense",
+        expenseSchema
+    );

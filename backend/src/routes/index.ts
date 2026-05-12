@@ -8,6 +8,7 @@ import expenseRouter from "./expense.routes";
 import incomeRouter from "./income.routes";
 import savingGoalRouter from "./savingGoal.routes";
 import dashboardRouter from "./dashboard.routes";
+import chartRouter from "./chart.routes";
 
 const router = Router();
 
@@ -23,8 +24,16 @@ router.use("/categories", categoryRouter);
 
 router.use("/budgets", budgetRouter);
 
-router.use("/saving-goals", savingGoalRouter);
+router.use(
+    "/saving-goals",
+    savingGoalRouter
+);
 
-router.use("/dashboard", dashboardRouter);
+router.use(
+    "/dashboard",
+    dashboardRouter
+);
+
+router.use("/charts", chartRouter);
 
 export default router;
