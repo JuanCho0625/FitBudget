@@ -1,3 +1,29 @@
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Expense:
+ *       type: object
+ *       required:
+ *         - amount
+ *         - description
+ *         - categoryId
+ *       properties:
+ *         amount:
+ *           type: number
+ *           description: Monto del gasto
+ *         description:
+ *           type: string
+ *           description: Concepto del gasto
+ *         categoryId:
+ *           type: string
+ *           description: ID de la categoría asociada
+ *         date:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha del gasto
+ */
+
 import mongoose, { Schema, model, Document } from "mongoose";
 
 export interface IExpense extends Document {
@@ -7,6 +33,7 @@ export interface IExpense extends Document {
     categoryId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
 }
+
 
 const expenseSchema = new Schema<IExpense>(
     {

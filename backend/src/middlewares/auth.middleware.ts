@@ -1,4 +1,3 @@
-console.log(" Middleware ejecutándose");
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 

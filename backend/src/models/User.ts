@@ -1,7 +1,36 @@
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109ca
+ *         name:
+ *           type: string
+ *           example: "Diego Ortiz"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "diego@iteso.mx"
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: Debe ser encriptada en el servidor
+ *         role:
+ *           type: string
+ *           enum: [ADMIN, USER]
+ *           default: USER
+ */
+
 import mongoose, { Schema, model, Document } from "mongoose";
 import bcrypt from "bcrypt";
-
- 
 
 export interface IUser extends Document {
   name: string;
