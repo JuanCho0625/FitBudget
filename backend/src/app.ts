@@ -6,11 +6,14 @@ import { Server } from "socket.io";
 import { setupSocketHandlers } from "./sockets";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-
+import cors from "cors";
 dotenv.config();
 
 const app = Express();
 const httpServer = createServer(app);
+
+
+app.use(cors());
 
 // Configurar socket.io
 const io = new Server(httpServer, {
