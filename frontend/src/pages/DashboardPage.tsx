@@ -7,6 +7,9 @@ import {
     getMonthlyExpenses,
 } from "../services/chartService";
 
+import { socket }
+    from "../services/socketService";
+
 import SummaryCard from "../components/SummaryCard";
 
 import ExpensesPieChart from "../components/charts/ExpensesPieChart";
@@ -74,6 +77,35 @@ function DashboardPage() {
             };
 
         fetchDashboardData();
+
+        const token =
+            localStorage.getItem(
+                "token"
+            );
+
+        socket.auth = {
+            token,
+        };
+
+        socket.connect();
+
+        socket.on(
+            "update-dashboard",
+            (data) => {
+                console.log(
+                    "Realtime update:",
+                    data
+                );
+
+                setSummary(data);
+
+                fetchDashboardData();
+            }
+        );
+
+        return () => {
+            socket.disconnect();
+        };
     }, []);
 
     return (
