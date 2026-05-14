@@ -1,39 +1,66 @@
-import { Request, Response, NextFunction } from "express";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import jwt from "jsonwebtoken";
 
-export interface AuthRequest extends Request {
-  user?: {
+export interface AuthRequest
+    extends Request {
+  authUser?: {
     id: string;
     role: string;
   };
+
   userId?: string;
 }
 
 export const authMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
 ): void => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader =
+        req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ message: "Token no proporcionado" });
+    if (
+        !authHeader ||
+        !authHeader.startsWith(
+            "Bearer "
+        )
+    ) {
+      res.status(401).json({
+        message:
+            "Token no proporcionado",
+      });
+
       return;
     }
 
-    const token = authHeader.split(" ")[1];
+    const token =
+        authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as { id: string; role: string };
+    const decoded =
+        jwt.verify(
+            token,
+            process.env
+                .JWT_SECRET as string
+        ) as {
+          id: string;
+          role: string;
+        };
 
-    req.user = decoded;
+    req.authUser = decoded;
+
     req.userId = decoded.id;
 
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token inválido o expirado" });
+    res.status(401).json({
+      message:
+          "Token inválido o expirado",
+    });
   }
 };
