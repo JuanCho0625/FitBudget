@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import OAuthSuccessPage from "./pages/OAuthSuccessPage";
+
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
@@ -16,9 +17,22 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
+                <Route
+                    path="/"
+                    element={<LoginPage />}
+                />
+
+                <Route
+                    path="/register"
+                    element={<RegisterPage />}
+                />
+
+                <Route
+                    path="/oauth-success"
+                    element={
+                        <OAuthSuccessPage />
+                    }
+                />
 
                 <Route
                     path="/dashboard"

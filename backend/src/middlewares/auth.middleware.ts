@@ -16,51 +16,64 @@ export interface AuthRequest
   userId?: string;
 }
 
-export const authMiddleware = (
-    req: AuthRequest,
-    res: Response,
-    next: NextFunction
-): void => {
-  try {
-    const authHeader =
-        req.headers.authorization;
+export const authMiddleware =
+    (
+        req: AuthRequest,
+        res: Response,
+        next: NextFunction
+    ): void => {
+      try {
+        const authHeader =
+            req.headers.authorization;
 
-    if (
-        !authHeader ||
-        !authHeader.startsWith(
-            "Bearer "
-        )
-    ) {
-      res.status(401).json({
-        message:
-            "Token no proporcionado",
-      });
+        if (
+            !authHeader ||
+            !authHeader.startsWith(
+                "Bearer "
+            )
+        ) {
+          res.status(401).json({
+            message:
+                "Token no proporcionado",
+          });
 
-      return;
-    }
+          return;
+        }
 
-    const token =
-        authHeader.split(" ")[1];
+        const token =
+            authHeader.split(
+                " "
+            )[1];
 
-    const decoded =
-        jwt.verify(
-            token,
-            process.env
-                .JWT_SECRET as string
-        ) as {
-          id: string;
-          role: string;
+        const decoded =
+            jwt.verify(
+                token,
+                process.env
+                    .JWT_SECRET as string
+            ) as {
+              id: string;
+              role: string;
+            };
+
+        req.authUser = {
+          id: decoded.id,
+          role:
+          decoded.role,
         };
 
-    req.authUser = decoded;
+        req.userId =
+            decoded.id;
 
-    req.userId = decoded.id;
+        next();
+      } catch (error) {
+        console.log(
+            "JWT ERROR:",
+            error
+        );
 
-    next();
-  } catch (error) {
-    res.status(401).json({
-      message:
-          "Token inválido o expirado",
-    });
-  }
-};
+        res.status(401).json({
+          message:
+              "Token inválido o expirado",
+        });
+      }
+    };
