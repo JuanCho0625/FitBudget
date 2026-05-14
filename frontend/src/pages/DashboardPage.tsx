@@ -1,92 +1,39 @@
 import { useEffect, useState } from "react";
-
 import { getDashboardSummary } from "../services/dashboardService";
-
-import {
-    getExpensesByCategory,
-    getMonthlyExpenses,
-} from "../services/chartService";
-
-import { socket }
-    from "../services/socketService";
-
+import { getExpensesByCategory, getMonthlyExpenses } from "../services/chartService";
+import { socket } from "../services/socketService";
 import SummaryCard from "../components/SummaryCard";
-
 import ExpensesPieChart from "../components/charts/ExpensesPieChart";
 import MonthlyExpensesChart from "../components/charts/MonthlyExpensesChart";
-
 import Sidebar from "../components/Sidebar";
 
 function DashboardPage() {
-    const [summary, setSummary] =
-        useState<any>(null);
+    const [summary, setSummary] = useState<any>(null);
+    const [expensesByCategory, setExpensesByCategory] = useState<any[]>([]);
+    const [monthlyExpenses, setMonthlyExpenses] = useState<any[]>([]);
 
-    const [
-        expensesByCategory,
-        setExpensesByCategory,
-    ] = useState<any[]>([]);
-
-    const [
-        monthlyExpenses,
-        setMonthlyExpenses,
-    ] = useState<any[]>([]);
+    const fetchDashboardData = async () => {
+        try {
+            const [summaryData, categoryData, monthlyData] = await Promise.all([
+                getDashboardSummary(),
+                getExpensesByCategory(),
+                getMonthlyExpenses(),
+            ]);
+            setSummary(summaryData);
+            setExpensesByCategory(categoryData);
+            setMonthlyExpenses(monthlyData);
+        } catch (error) {
+            console.error("Dashboard error:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchDashboardData =
-            async () => {
-                try {
-                    const summaryData =
-                        await getDashboardSummary();
-
-                    setSummary(summaryData);
-
-                    console.log(
-                        "Dashboard summary:",
-                        summaryData
-                    );
-
-                    const categoryData =
-                        await getExpensesByCategory();
-
-                    setExpensesByCategory(
-                        categoryData
-                    );
-
-                    console.log(
-                        "Expenses by category:",
-                        categoryData
-                    );
-
-                    const monthlyExpensesData =
-                        await getMonthlyExpenses();
-
-                    setMonthlyExpenses(
-                        monthlyExpensesData
-                    );
-
-                    console.log(
-                        "Monthly expenses:",
-                        monthlyExpensesData
-                    );
-                } catch (error) {
-                    console.error(
-                        "Dashboard error:",
-                        error
-                    );
-                }
-            };
-
         fetchDashboardData();
 
-        const token =
-            localStorage.getItem(
-                "token"
-            );
-
+        const token = localStorage.getItem("token");
         socket.auth = { token };
         socket.connect();
 
-        // Decode JWT to get userId and join the private room
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split(".")[1]));
@@ -94,88 +41,66 @@ function DashboardPage() {
             } catch (_) {}
         }
 
-        socket.on("update-dashboard", () => {
-            fetchDashboardData();
-        });
+        socket.on("update-dashboard", () => { fetchDashboardData(); });
 
-        return () => {
-            socket.disconnect();
-        };
+        return () => { socket.disconnect(); };
     }, []);
 
     return (
-        <div
-            style={{
-                display: "flex",
-            }}
-        >
+        <div className="page-layout">
             <Sidebar />
 
-            <div
-                style={{
-                    marginLeft: "250px",
-                    padding: "40px",
-                    width: "100%",
-                }}
-            >
-                <h1
-                    style={{
-                        marginBottom: "30px",
-                    }}
-                >
-                    FitBudget Dashboard
-                </h1>
+            <div className="page-content">
+                <div className="page-header">
+                    <h1 className="page-title">Dashboard</h1>
+                    <p className="page-subtitle">Resumen de tus finanzas personales</p>
+                </div>
 
                 {summary ? (
                     <>
                         <div className="summary-container">
                             <SummaryCard
-                                title="Total Income"
+                                title="Ingresos totales"
                                 value={summary.totalIncomes}
+                                accent="var(--success)"
                             />
-
                             <SummaryCard
-                                title="Total Expenses"
+                                title="Gastos totales"
                                 value={summary.totalExpenses}
+                                accent="var(--danger)"
                             />
-
                             <SummaryCard
                                 title="Apartados"
                                 value={summary.totalSaved ?? 0}
+                                accent="var(--info)"
                             />
-
                             <SummaryCard
-                                title="Balance"
+                                title="Balance disponible"
                                 value={summary.balance}
+                                accent={summary.balance >= 0 ? "var(--primary)" : "var(--danger)"}
                             />
                         </div>
 
-                        <div
-                            style={{
-                                marginTop: "40px",
-                            }}
-                        >
-                            <h2>
-                                Expenses by Category
-                            </h2>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                            <div className="card">
+                                <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 20, color: "var(--text-2)" }}>
+                                    Gastos por categoría
+                                </h2>
+                                <ExpensesPieChart data={expensesByCategory} />
+                            </div>
 
-                            <ExpensesPieChart
-                                data={
-                                    expensesByCategory
-                                }
-                            />
+                            <div className="card">
+                                <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 20, color: "var(--text-2)" }}>
+                                    Gastos mensuales
+                                </h2>
+                                <MonthlyExpensesChart data={monthlyExpenses} />
+                            </div>
                         </div>
-
-                        <MonthlyExpensesChart
-                            data={
-                                monthlyExpenses
-                            }
-                        />
                     </>
                 ) : (
-                    <p>
-                        Loading dashboard...
-                    </p>
+                    <div className="empty-state">
+                        <p>Cargando datos...</p>
+                    </div>
                 )}
             </div>
         </div>

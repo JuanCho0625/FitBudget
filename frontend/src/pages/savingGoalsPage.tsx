@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
-
 import Sidebar from "../components/Sidebar";
-
-import {
-    getSavingGoals,
-    createSavingGoal,
-    updateSavingGoal,
-    deleteSavingGoal,
-} from "../services/savingGoalService";
+import { getSavingGoals, createSavingGoal, updateSavingGoal, deleteSavingGoal } from "../services/savingGoalService";
 
 function SavingGoalsPage() {
     const [goals, setGoals] = useState<any[]>([]);
@@ -16,266 +9,177 @@ function SavingGoalsPage() {
     const [currentAmount, setCurrentAmount] = useState("");
     const [deadline, setDeadline] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
-
-    // deposit input per goal: { [goalId]: amountString }
     const [depositAmounts, setDepositAmounts] = useState<Record<string, string>>({});
     const [depositError, setDepositError] = useState<Record<string, string>>({});
 
     const fetchGoals = async () => {
-        try {
-            const data = await getSavingGoals();
-            setGoals(data);
-        } catch (error) {
-            console.error("Saving goals error:", error);
-        }
+        try { setGoals(await getSavingGoals()); } catch (e) { console.error(e); }
     };
 
-    useEffect(() => {
-        fetchGoals();
-    }, []);
+    useEffect(() => { fetchGoals(); }, []);
 
     const resetForm = () => {
-        setGoalName("");
-        setTargetAmount("");
-        setCurrentAmount("");
-        setDeadline("");
-        setEditingId(null);
+        setGoalName(""); setTargetAmount(""); setCurrentAmount("");
+        setDeadline(""); setEditingId(null);
     };
 
-    const handleCreate = async (event: React.FormEvent) => {
-        event.preventDefault();
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         try {
-            const goalData = {
-                goalName,
-                targetAmount: Number(targetAmount),
-                currentAmount: Number(currentAmount),
-                deadline,
-            };
+            const data = { goalName, targetAmount: Number(targetAmount), currentAmount: Number(currentAmount), deadline };
+            if (editingId) { await updateSavingGoal(editingId, data); }
+            else { await createSavingGoal(data); }
+            resetForm(); fetchGoals();
+        } catch (err) { console.error(err); }
+    };
 
-            if (editingId) {
-                await updateSavingGoal(editingId, goalData);
-            } else {
-                await createSavingGoal(goalData);
-            }
-
-            resetForm();
-            fetchGoals();
-        } catch (error) {
-            console.error("Create/Update error:", error);
-        }
+    const handleEdit = (g: any) => {
+        setEditingId(g._id); setGoalName(g.goalName);
+        setTargetAmount(g.targetAmount.toString());
+        setCurrentAmount(g.currentAmount.toString());
+        setDeadline(g.deadline.split("T")[0]);
     };
 
     const handleDelete = async (id: string) => {
-        try {
-            await deleteSavingGoal(id);
-            fetchGoals();
-        } catch (error) {
-            console.error("Delete error:", error);
-        }
-    };
-
-    const handleEdit = (goal: any) => {
-        setEditingId(goal._id);
-        setGoalName(goal.goalName);
-        setTargetAmount(goal.targetAmount.toString());
-        setCurrentAmount(goal.currentAmount.toString());
-        setDeadline(goal.deadline.split("T")[0]);
+        try { await deleteSavingGoal(id); fetchGoals(); } catch (e) { console.error(e); }
     };
 
     const handleDeposit = async (goal: any) => {
         const raw = depositAmounts[goal._id] ?? "";
         const amount = Number(raw);
-
         if (!raw || amount <= 0) {
-            setDepositError((prev) => ({ ...prev, [goal._id]: "Ingresa un monto válido mayor a 0" }));
+            setDepositError(p => ({ ...p, [goal._id]: "Ingresa un monto mayor a 0" }));
             return;
         }
-
         const remaining = goal.targetAmount - goal.currentAmount;
         if (amount > remaining) {
-            setDepositError((prev) => ({
-                ...prev,
-                [goal._id]: `El monto excede lo que falta ($${remaining.toFixed(2)})`,
-            }));
+            setDepositError(p => ({ ...p, [goal._id]: `Máximo a abonar: $${remaining.toFixed(2)}` }));
             return;
         }
-
         try {
             await updateSavingGoal(goal._id, { addAmount: amount });
-            setDepositAmounts((prev) => ({ ...prev, [goal._id]: "" }));
-            setDepositError((prev) => ({ ...prev, [goal._id]: "" }));
+            setDepositAmounts(p => ({ ...p, [goal._id]: "" }));
+            setDepositError(p => ({ ...p, [goal._id]: "" }));
             fetchGoals();
-        } catch (error) {
-            console.error("Deposit error:", error);
-        }
+        } catch (err) { console.error(err); }
     };
 
-    const inputStyle = { padding: "10px" };
-
     return (
-        <div style={{ display: "flex" }}>
+        <div className="page-layout">
             <Sidebar />
+            <div className="page-content">
+                <div className="page-header">
+                    <h1 className="page-title">Metas de Ahorro</h1>
+                    <p className="page-subtitle">Visualiza y avanza hacia tus objetivos financieros</p>
+                </div>
 
-            <div style={{ marginLeft: "250px", padding: "40px", width: "100%" }}>
-                <h1 style={{ marginBottom: "30px" }}>Saving Goals</h1>
+                <div className="form-card">
+                    <h2>{editingId ? "Editar meta" : "Nueva meta de ahorro"}</h2>
+                    <form onSubmit={handleSubmit} className="form-row">
+                        <div className="form-field">
+                            <label className="form-label">Nombre</label>
+                            <input className="form-input" type="text" placeholder="Ej. Viaje de graduación"
+                                value={goalName} onChange={e => setGoalName(e.target.value)} required />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 150 }}>
+                            <label className="form-label">Monto objetivo</label>
+                            <input className="form-input" type="number" placeholder="0.00"
+                                value={targetAmount} onChange={e => setTargetAmount(e.target.value)} required min="1" step="0.01" />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 150 }}>
+                            <label className="form-label">Monto inicial</label>
+                            <input className="form-input" type="number" placeholder="0.00"
+                                value={currentAmount} onChange={e => setCurrentAmount(e.target.value)} min="0" step="0.01" />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 160 }}>
+                            <label className="form-label">Fecha límite</label>
+                            <input className="form-input" type="date" value={deadline}
+                                onChange={e => setDeadline(e.target.value)} required />
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                            <button type="submit" className="btn btn-primary">
+                                {editingId ? "Actualizar" : "Crear meta"}
+                            </button>
+                            {editingId && <button type="button" className="btn btn-ghost" onClick={resetForm}>Cancelar</button>}
+                        </div>
+                    </form>
+                </div>
 
-                <form
-                    onSubmit={handleCreate}
-                    style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}
-                >
-                    <input
-                        type="text"
-                        placeholder="Nombre de la meta"
-                        value={goalName}
-                        onChange={(e) => setGoalName(e.target.value)}
-                        required
-                        style={inputStyle}
-                    />
-                    <input
-                        type="number"
-                        placeholder="Monto objetivo"
-                        value={targetAmount}
-                        onChange={(e) => setTargetAmount(e.target.value)}
-                        required
-                        min="1"
-                        style={inputStyle}
-                    />
-                    <input
-                        type="number"
-                        placeholder="Monto inicial (opcional)"
-                        value={currentAmount}
-                        onChange={(e) => setCurrentAmount(e.target.value)}
-                        min="0"
-                        style={inputStyle}
-                    />
-                    <input
-                        type="date"
-                        value={deadline}
-                        onChange={(e) => setDeadline(e.target.value)}
-                        required
-                        style={inputStyle}
-                    />
-                    <button type="submit" style={{ padding: "10px 20px", cursor: "pointer" }}>
-                        {editingId ? "Update Goal" : "Add Goal"}
-                    </button>
-                    {editingId && (
-                        <button type="button" onClick={resetForm} style={{ padding: "10px 20px", cursor: "pointer" }}>
-                            Cancelar
-                        </button>
-                    )}
-                </form>
+                {goals.length === 0 ? (
+                    <div className="empty-state"><p>Sin metas de ahorro. ¡Crea tu primera meta!</p></div>
+                ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
+                        {goals.map(goal => {
+                            const pct = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                            const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
+                            const done = goal.status === "completed" || remaining === 0;
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                    {goals.map((goal) => {
-                        const progress = Math.min(
-                            (goal.currentAmount / goal.targetAmount) * 100,
-                            100
-                        ).toFixed(0);
-                        const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
-                        const isCompleted = goal.status === "completed" || remaining === 0;
-
-                        return (
-                            <div
-                                key={goal._id}
-                                style={{
-                                    background: "white",
-                                    padding: "20px",
-                                    borderRadius: "12px",
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                    borderLeft: isCompleted ? "4px solid #22c55e" : "4px solid #e5e7eb",
-                                }}
-                            >
-                                <h2 style={{ marginBottom: 8 }}>
-                                    {isCompleted ? "✅" : "🎯"} {goal.goalName}
-                                    {isCompleted && (
-                                        <span style={{ fontSize: 14, color: "#22c55e", marginLeft: 10 }}>
-                                            ¡Meta alcanzada!
-                                        </span>
-                                    )}
-                                </h2>
-
-                                <p style={{ margin: "4px 0" }}>
-                                    Ahorrado: <strong>${goal.currentAmount.toFixed(2)}</strong> / ${goal.targetAmount.toFixed(2)}
-                                </p>
-                                <p style={{ margin: "4px 0", color: isCompleted ? "#22c55e" : "#6b7280" }}>
-                                    {isCompleted ? "Completada" : `Falta: $${remaining.toFixed(2)}`}
-                                </p>
-
-                                {/* Barra de progreso */}
-                                <div
-                                    style={{
-                                        width: "100%",
-                                        height: 20,
-                                        background: "#e5e7eb",
-                                        borderRadius: 10,
-                                        overflow: "hidden",
-                                        marginTop: 10,
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            width: `${progress}%`,
-                                            height: "100%",
-                                            background: isCompleted ? "#22c55e" : "#3b82f6",
-                                            transition: "width 0.4s ease",
-                                        }}
-                                    />
-                                </div>
-                                <p style={{ marginTop: 6, marginBottom: 4 }}>{progress}%</p>
-
-                                <p style={{ color: "#6b7280", fontSize: 14 }}>
-                                    Fecha límite: {new Date(goal.deadline).toLocaleDateString()}
-                                </p>
-
-                                {/* Abonar a la meta */}
-                                {!isCompleted && (
-                                    <div style={{ marginTop: 16, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                                        <input
-                                            type="number"
-                                            placeholder="Monto a abonar"
-                                            value={depositAmounts[goal._id] ?? ""}
-                                            onChange={(e) =>
-                                                setDepositAmounts((prev) => ({ ...prev, [goal._id]: e.target.value }))
-                                            }
-                                            min="0.01"
-                                            step="0.01"
-                                            style={{ padding: "8px 12px", width: 160 }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeposit(goal)}
-                                            style={{
-                                                padding: "8px 16px",
-                                                cursor: "pointer",
-                                                background: "#3b82f6",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: 6,
-                                            }}
-                                        >
-                                            Abonar
-                                        </button>
-                                        {depositError[goal._id] && (
-                                            <span style={{ color: "red", fontSize: 13 }}>
-                                                {depositError[goal._id]}
-                                            </span>
+                            return (
+                                <div key={goal._id} className="card" style={{
+                                    borderTop: `3px solid ${done ? "var(--success)" : "var(--primary)"}`,
+                                }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                                        <h3 style={{ fontSize: 16, fontWeight: 700 }}>{goal.goalName}</h3>
+                                        {done ? (
+                                            <span className="badge" style={{ background: "var(--success-light)", color: "var(--success)" }}>✓ Completada</span>
+                                        ) : (
+                                            <span className="badge badge-neutral">Activa</span>
                                         )}
                                     </div>
-                                )}
 
-                                {/* Editar / Eliminar */}
-                                <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                                    <button type="button" onClick={() => handleEdit(goal)} style={{ padding: "8px 12px", cursor: "pointer" }}>
-                                        Edit
-                                    </button>
-                                    <button type="button" onClick={() => handleDelete(goal._id)} style={{ padding: "8px 12px", cursor: "pointer" }}>
-                                        Delete
-                                    </button>
+                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--text-2)", marginBottom: 8 }}>
+                                        <span>Ahorrado: <strong style={{ color: "var(--text-1)" }}>${goal.currentAmount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong></span>
+                                        <span>Meta: <strong style={{ color: "var(--text-1)" }}>${goal.targetAmount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong></span>
+                                    </div>
+
+                                    <div className="progress-track">
+                                        <div className="progress-fill" style={{
+                                            width: `${pct}%`,
+                                            background: done ? "var(--success)" : "var(--primary)",
+                                        }} />
+                                    </div>
+
+                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 6 }}>
+                                        <span style={{ color: "var(--text-2)" }}>{pct.toFixed(0)}% completado</span>
+                                        {!done && <span style={{ color: "var(--text-2)" }}>Falta: <strong style={{ color: "var(--text-1)" }}>${remaining.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong></span>}
+                                    </div>
+
+                                    <p style={{ fontSize: 12, color: "var(--text-3)", marginTop: 8 }}>
+                                        Fecha límite: {new Date(goal.deadline).toLocaleDateString("es-MX")}
+                                    </p>
+
+                                    {!done && (
+                                        <div style={{ marginTop: 16, padding: "14px", background: "var(--bg)", borderRadius: "var(--radius-md)" }}>
+                                            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Abonar a la meta</p>
+                                            <div style={{ display: "flex", gap: 8 }}>
+                                                <input
+                                                    className="form-input"
+                                                    type="number"
+                                                    placeholder="Monto"
+                                                    value={depositAmounts[goal._id] ?? ""}
+                                                    onChange={e => setDepositAmounts(p => ({ ...p, [goal._id]: e.target.value }))}
+                                                    min="0.01" step="0.01"
+                                                    style={{ flex: 1 }}
+                                                />
+                                                <button className="btn btn-success btn-sm" onClick={() => handleDeposit(goal)}>
+                                                    Abonar
+                                                </button>
+                                            </div>
+                                            {depositError[goal._id] && (
+                                                <p style={{ fontSize: 12, color: "var(--danger)", marginTop: 6 }}>{depositError[goal._id]}</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => handleEdit(goal)}>Editar</button>
+                                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(goal._id)}>Eliminar</button>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );

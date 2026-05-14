@@ -1,380 +1,131 @@
 import { useEffect, useState } from "react";
-
 import Sidebar from "../components/Sidebar";
+import { getBudgets, createBudget, updateBudget, deleteBudget } from "../services/budgetService";
 
-import {
-    getBudgets,
-    createBudget,
-    updateBudget,
-    deleteBudget,
-} from "../services/budgetService";
+const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
 function BudgetsPage() {
-    const [budgets, setBudgets] =
-        useState<any[]>([]);
+    const [budgets, setBudgets] = useState<any[]>([]);
+    const [monthlyLimit, setMonthlyLimit] = useState("");
+    const [month, setMonth] = useState("");
+    const [year, setYear] = useState(new Date().getFullYear().toString());
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [error, setError] = useState("");
 
-    const [
-        monthlyLimit,
-        setMonthlyLimit,
-    ] = useState("");
+    const fetchBudgets = async () => {
+        try { setBudgets(await getBudgets()); } catch (e) { console.error(e); }
+    };
 
-    const [month, setMonth] =
-        useState("");
+    useEffect(() => { fetchBudgets(); }, []);
 
-    const [year, setYear] =
-        useState("");
+    const resetForm = () => {
+        setMonthlyLimit(""); setMonth(""); setYear(new Date().getFullYear().toString());
+        setEditingId(null); setError("");
+    };
 
-    const [editingId, setEditingId] =
-        useState<string | null>(null);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        try {
+            const data = { monthlyLimit: Number(monthlyLimit), month: Number(month), year: Number(year) };
+            if (editingId) { await updateBudget(editingId, data); }
+            else { await createBudget(data); }
+            resetForm(); fetchBudgets();
+        } catch (err) { setError("Error al guardar el presupuesto."); }
+    };
 
-    const fetchBudgets =
-        async () => {
-            try {
-                const data =
-                    await getBudgets();
+    const handleEdit = (b: any) => {
+        setEditingId(b._id);
+        setMonthlyLimit(b.monthlyLimit.toString());
+        setMonth(b.month.toString());
+        setYear(b.year.toString());
+    };
 
-                console.log(
-                    "Budgets:",
-                    data
-                );
-
-                setBudgets(data);
-            } catch (error) {
-                console.error(
-                    "Budgets error:",
-                    error
-                );
-            }
-        };
-
-    useEffect(() => {
-        fetchBudgets();
-    }, []);
-
-    const handleCreate =
-        async (
-            event: React.FormEvent
-        ) => {
-            event.preventDefault();
-
-            try {
-                const budgetData = {
-                    monthlyLimit:
-                        Number(
-                            monthlyLimit
-                        ),
-                    month:
-                        Number(month),
-                    year:
-                        Number(year),
-                };
-
-                if (editingId) {
-                    await updateBudget(
-                        editingId,
-                        budgetData
-                    );
-
-                    setEditingId(null);
-                } else {
-                    await createBudget(
-                        budgetData
-                    );
-                }
-
-                setMonthlyLimit("");
-                setMonth("");
-                setYear("");
-
-                fetchBudgets();
-            } catch (error) {
-                console.error(
-                    "Create/Update error:",
-                    error
-                );
-            }
-        };
-
-    const handleDelete =
-        async (id: string) => {
-            try {
-                await deleteBudget(id);
-
-                fetchBudgets();
-            } catch (error) {
-                console.error(
-                    "Delete error:",
-                    error
-                );
-            }
-        };
-
-    const handleEdit = (
-        budget: any
-    ) => {
-        setEditingId(budget._id);
-
-        setMonthlyLimit(
-            budget.monthlyLimit.toString()
-        );
-
-        setMonth(
-            budget.month.toString()
-        );
-
-        setYear(
-            budget.year.toString()
-        );
+    const handleDelete = async (id: string) => {
+        try { await deleteBudget(id); fetchBudgets(); } catch (e) { console.error(e); }
     };
 
     return (
-        <div
-            style={{
-                display: "flex",
-            }}
-        >
+        <div className="page-layout">
             <Sidebar />
+            <div className="page-content">
+                <div className="page-header">
+                    <h1 className="page-title">Presupuestos</h1>
+                    <p className="page-subtitle">Define límites de gasto mensual</p>
+                </div>
 
-            <div
-                style={{
-                    marginLeft: "250px",
-                    padding: "40px",
-                    width: "100%",
-                }}
-            >
-                <h1
-                    style={{
-                        marginBottom: "30px",
-                    }}
-                >
-                    Budgets
-                </h1>
+                <div className="form-card">
+                    <h2>{editingId ? "Editar presupuesto" : "Nuevo presupuesto"}</h2>
+                    <form onSubmit={handleSubmit} className="form-row">
+                        <div className="form-field" style={{ maxWidth: 180 }}>
+                            <label className="form-label">Límite mensual</label>
+                            <input className="form-input" type="number" placeholder="0.00"
+                                value={monthlyLimit} onChange={e => setMonthlyLimit(e.target.value)} required min="1" step="0.01" />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 160 }}>
+                            <label className="form-label">Mes</label>
+                            <select className="form-input" value={month} onChange={e => setMonth(e.target.value)} required>
+                                <option value="">-- Mes --</option>
+                                {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
+                            </select>
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 120 }}>
+                            <label className="form-label">Año</label>
+                            <input className="form-input" type="number" placeholder="2026"
+                                value={year} onChange={e => setYear(e.target.value)} required min="2020" max="2100" />
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                            <button type="submit" className="btn btn-primary">
+                                {editingId ? "Actualizar" : "Agregar"}
+                            </button>
+                            {editingId && <button type="button" className="btn btn-ghost" onClick={resetForm}>Cancelar</button>}
+                        </div>
+                    </form>
+                    {error && <p className="alert alert-error" style={{ marginTop: 12 }}>{error}</p>}
+                </div>
 
-                <form
-                    onSubmit={handleCreate}
-                    style={{
-                        display: "flex",
-                        gap: "10px",
-                        marginBottom: "30px",
-                        flexWrap: "wrap",
-                    }}
-                >
-                    <input
-                        type="number"
-                        placeholder="Monthly Limit"
-                        value={
-                            monthlyLimit
-                        }
-                        onChange={(
-                            event
-                        ) =>
-                            setMonthlyLimit(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <input
-                        type="number"
-                        placeholder="Month"
-                        value={month}
-                        onChange={(
-                            event
-                        ) =>
-                            setMonth(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <input
-                        type="number"
-                        placeholder="Year"
-                        value={year}
-                        onChange={(
-                            event
-                        ) =>
-                            setYear(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <button
-                        type="submit"
-                        style={{
-                            padding:
-                                "10px 20px",
-                            cursor:
-                                "pointer",
-                        }}
-                    >
-                        {editingId
-                            ? "Update Budget"
-                            : "Add Budget"}
-                    </button>
-                </form>
-
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection:
-                            "column",
-                        gap: "20px",
-                    }}
-                >
-                    {budgets.map(
-                        (budget) => {
-                            const used =
-                                Math.floor(
-                                    Math.random() *
-                                    budget.monthlyLimit
-                                );
-
-                            const progress =
-                                (
-                                    (used /
-                                        budget.monthlyLimit) *
-                                    100
-                                ).toFixed(
-                                    0
-                                );
-
+                {budgets.length === 0 ? (
+                    <div className="empty-state"><p>Sin presupuestos registrados</p></div>
+                ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                        {budgets.map(budget => {
+                            const pct = Math.min(Number(budget.percentageUsed ?? 0), 100);
+                            const isOver = pct >= 80;
                             return (
-                                <div
-                                    key={
-                                        budget._id
-                                    }
-                                    style={{
-                                        background:
-                                            "white",
-                                        padding:
-                                            "20px",
-                                        borderRadius:
-                                            "12px",
-                                        boxShadow:
-                                            "0 2px 8px rgba(0,0,0,0.1)",
-                                    }}
-                                >
-                                    <h2>
-                                        Budget{" "}
-                                        {
-                                            budget.month
-                                        }
-                                        /
-                                        {
-                                            budget.year
-                                        }
-                                    </h2>
+                                <div key={budget._id} className="card">
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                                        <div>
+                                            <h3 style={{ fontSize: 16, fontWeight: 700 }}>
+                                                {MONTHS[(budget.month ?? 1) - 1]} {budget.year}
+                                            </h3>
+                                            <p style={{ fontSize: 13, color: "var(--text-2)", marginTop: 2 }}>
+                                                Límite: ${budget.monthlyLimit?.toLocaleString("es-MX")}
+                                            </p>
+                                        </div>
+                                        <span className="badge" style={{ background: isOver ? "var(--danger-light)" : "var(--success-light)", color: isOver ? "var(--danger)" : "var(--success)" }}>
+                                            {pct.toFixed(0)}%
+                                        </span>
+                                    </div>
 
-                                    <p>
-                                        $
-                                        {
-                                            used
-                                        }{" "}
-                                        / $
-                                        {
-                                            budget.monthlyLimit
-                                        }
-                                    </p>
-
-                                    <div
-                                        style={{
-                                            width:
-                                                "100%",
-                                            height:
-                                                "20px",
-                                            background:
-                                                "#e5e7eb",
-                                            borderRadius:
-                                                "10px",
-                                            overflow:
-                                                "hidden",
-                                            marginTop:
-                                                "10px",
-                                        }}
-                                    >
+                                    <div className="progress-track">
                                         <div
+                                            className="progress-fill"
                                             style={{
-                                                width:
-                                                    `${progress}%`,
-                                                height:
-                                                    "100%",
-                                                background:
-                                                    Number(
-                                                        progress
-                                                    ) >
-                                                    80
-                                                        ? "#ef4444"
-                                                        : "#3b82f6",
+                                                width: `${pct}%`,
+                                                background: isOver ? "var(--danger)" : "var(--primary)",
                                             }}
                                         />
                                     </div>
 
-                                    <p
-                                        style={{
-                                            marginTop:
-                                                "10px",
-                                        }}
-                                    >
-                                        {
-                                            progress
-                                        }
-                                        %
-                                        used
-                                    </p>
-
-                                    <div
-                                        style={{
-                                            display:
-                                                "flex",
-                                            gap: "10px",
-                                            marginTop:
-                                                "15px",
-                                        }}
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleEdit(
-                                                    budget
-                                                )
-                                            }
-                                        >
-                                            Edit
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleDelete(
-                                                    budget._id
-                                                )
-                                            }
-                                        >
-                                            Delete
-                                        </button>
+                                    <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => handleEdit(budget)}>Editar</button>
+                                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(budget._id)}>Eliminar</button>
                                     </div>
                                 </div>
                             );
-                        }
-                    )}
-                </div>
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );

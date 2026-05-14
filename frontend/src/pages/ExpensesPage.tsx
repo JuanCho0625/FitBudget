@@ -1,462 +1,150 @@
 import { useEffect, useState } from "react";
-
-import {
-    getExpenses,
-    createExpense,
-    updateExpense,
-    deleteExpense,
-} from "../services/expenseService";
-
-import {
-    getCategories,
-} from "../services/categoryService";
-
+import { getExpenses, createExpense, updateExpense, deleteExpense } from "../services/expenseService";
+import { getCategories } from "../services/categoryService";
 import Sidebar from "../components/Sidebar";
 
 function ExpensesPage() {
-    const [expenses, setExpenses] =
-        useState<any[]>([]);
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [description, setDescription] = useState("");
+    const [amount, setAmount] = useState("");
+    const [date, setDate] = useState("");
+    const [categoryId, setCategoryId] = useState("");
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [error, setError] = useState("");
 
-    const [categories, setCategories] =
-        useState<any[]>([]);
-
-    const [description, setDescription] =
-        useState("");
-
-    const [amount, setAmount] =
-        useState("");
-
-    const [date, setDate] =
-        useState("");
-
-    const [categoryId, setCategoryId] =
-        useState("");
-
-    const [editingId, setEditingId] =
-        useState<string | null>(null);
-
-    const fetchExpenses =
-        async () => {
-            try {
-                const data =
-                    await getExpenses();
-
-                console.log(
-                    "Expenses:",
-                    data
-                );
-
-                setExpenses(data);
-
-                const categoriesData =
-                    await getCategories();
-
-                setCategories(
-                    categoriesData
-                );
-
-                console.log(
-                    "Categories:",
-                    categoriesData
-                );
-            } catch (error) {
-                console.error(
-                    "Expenses error:",
-                    error
-                );
-            }
-        };
-
-    useEffect(() => {
-        fetchExpenses();
-    }, []);
-
-    const handleCreate =
-        async (
-            event: React.FormEvent
-        ) => {
-            event.preventDefault();
-
-            try {
-                if (editingId) {
-                    await updateExpense(
-                        editingId,
-                        {
-                            description,
-                            amount:
-                                Number(amount),
-                            date,
-                            categoryId,
-                        }
-                    );
-
-                    setEditingId(null);
-                } else {
-                    await createExpense({
-                        description,
-                        amount:
-                            Number(amount),
-                        date,
-                        categoryId,
-                    });
-                }
-
-                setDescription("");
-                setAmount("");
-                setDate("");
-                setCategoryId("");
-
-                fetchExpenses();
-            } catch (error) {
-                console.error(
-                    "Create/Update error:",
-                    error
-                );
-            }
-        };
-
-    const handleDelete =
-        async (id: string) => {
-            try {
-                await deleteExpense(id);
-
-                fetchExpenses();
-            } catch (error) {
-                console.error(
-                    "Delete error:",
-                    error
-                );
-            }
-        };
-
-    const handleEdit = (
-        expense: any
-    ) => {
-        console.log(
-            "Editing:",
-            expense
-        );
-
-        setEditingId(expense._id);
-
-        setDescription(
-            expense.description
-        );
-
-        setAmount(
-            expense.amount.toString()
-        );
-
-        setDate(
-            expense.date.split("T")[0]
-        );
-
-        setCategoryId(
-            expense.categoryId
-        );
+    const fetchData = async () => {
+        try {
+            const [exp, cats] = await Promise.all([
+                getExpenses(),
+                getCategories("expense"),
+            ]);
+            setExpenses(exp);
+            setCategories(cats);
+        } catch (err) {
+            console.error("Expenses error:", err);
+        }
     };
 
+    useEffect(() => { fetchData(); }, []);
+
+    const resetForm = () => {
+        setDescription(""); setAmount(""); setDate("");
+        setCategoryId(""); setEditingId(null); setError("");
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        try {
+            const payload = { description, amount: Number(amount), date, categoryId };
+            if (editingId) {
+                await updateExpense(editingId, payload);
+            } else {
+                await createExpense(payload);
+            }
+            resetForm();
+            fetchData();
+        } catch (err) {
+            setError("Error al guardar el gasto.");
+        }
+    };
+
+    const handleEdit = (expense: any) => {
+        setEditingId(expense._id);
+        setDescription(expense.description);
+        setAmount(expense.amount.toString());
+        setDate(expense.date.split("T")[0]);
+        setCategoryId(expense.categoryId?._id ?? expense.categoryId ?? "");
+        setError("");
+    };
+
+    const handleDelete = async (id: string) => {
+        try { await deleteExpense(id); fetchData(); } catch (err) { console.error(err); }
+    };
+
+    const getCategoryName = (expense: any) => expense.categoryId?.name ?? "—";
+
     return (
-        <div
-            style={{
-                display: "flex",
-            }}
-        >
+        <div className="page-layout">
             <Sidebar />
+            <div className="page-content">
+                <div className="page-header">
+                    <h1 className="page-title">Gastos</h1>
+                    <p className="page-subtitle">Registra y controla tus gastos</p>
+                </div>
 
-            <div
-                style={{
-                    marginLeft: "250px",
-                    padding: "40px",
-                    width: "100%",
-                }}
-            >
-                <h1
-                    style={{
-                        marginBottom: "30px",
-                    }}
-                >
-                    Expenses
-                </h1>
+                <div className="form-card">
+                    <h2>{editingId ? "Editar gasto" : "Nuevo gasto"}</h2>
+                    <form onSubmit={handleSubmit} className="form-row">
+                        <div className="form-field">
+                            <label className="form-label">Descripción</label>
+                            <input className="form-input" type="text" placeholder="Ej. Cena con amigos"
+                                value={description} onChange={e => setDescription(e.target.value)} required />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 140 }}>
+                            <label className="form-label">Monto</label>
+                            <input className="form-input" type="number" placeholder="0.00"
+                                value={amount} onChange={e => setAmount(e.target.value)} required min="0.01" step="0.01" />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 160 }}>
+                            <label className="form-label">Fecha</label>
+                            <input className="form-input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+                        </div>
+                        <div className="form-field" style={{ maxWidth: 180 }}>
+                            <label className="form-label">Categoría</label>
+                            <select className="form-input" value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
+                                <option value="">-- Seleccionar --</option>
+                                {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                            </select>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                            <button type="submit" className="btn btn-primary">
+                                {editingId ? "Actualizar" : "Agregar"}
+                            </button>
+                            {editingId && (
+                                <button type="button" className="btn btn-ghost" onClick={resetForm}>Cancelar</button>
+                            )}
+                        </div>
+                    </form>
+                    {error && <p className="alert alert-error" style={{ marginTop: 12 }}>{error}</p>}
+                </div>
 
-                <form
-                    onSubmit={handleCreate}
-                    style={{
-                        display: "flex",
-                        gap: "10px",
-                        marginBottom: "30px",
-                        flexWrap: "wrap",
-                    }}
-                >
-                    <input
-                        type="text"
-                        placeholder="Description"
-                        value={description}
-                        onChange={(
-                            event
-                        ) =>
-                            setDescription(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <input
-                        type="number"
-                        placeholder="Amount"
-                        value={amount}
-                        onChange={(
-                            event
-                        ) =>
-                            setAmount(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(
-                            event
-                        ) =>
-                            setDate(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    />
-
-                    <select
-                        value={categoryId}
-                        onChange={(
-                            event
-                        ) =>
-                            setCategoryId(
-                                event.target
-                                    .value
-                            )
-                        }
-                        style={{
-                            padding:
-                                "10px",
-                        }}
-                    >
-                        <option value="">
-                            Select Category
-                        </option>
-
-                        {categories.map(
-                            (
-                                category
-                            ) => (
-                                <option
-                                    key={
-                                        category._id
-                                    }
-                                    value={
-                                        category._id
-                                    }
-                                >
-                                    {
-                                        category.name
-                                    }
-                                </option>
-                            )
-                        )}
-                    </select>
-
-                    <button
-                        type="submit"
-                        style={{
-                            padding:
-                                "10px 20px",
-                            cursor:
-                                "pointer",
-                        }}
-                    >
-                        {editingId
-                            ? "Update Expense"
-                            : "Add Expense"}
-                    </button>
-                </form>
-
-                <table
-                    style={{
-                        width: "100%",
-                        borderCollapse:
-                            "collapse",
-                        background:
-                            "white",
-                        borderRadius:
-                            "10px",
-                        overflow:
-                            "hidden",
-                    }}
-                >
-                    <thead>
-                    <tr
-                        style={{
-                            background:
-                                "#f3f4f6",
-                        }}
-                    >
-                        <th
-                            style={{
-                                padding:
-                                    "15px",
-                                textAlign:
-                                    "left",
-                            }}
-                        >
-                            Description
-                        </th>
-
-                        <th
-                            style={{
-                                padding:
-                                    "15px",
-                                textAlign:
-                                    "left",
-                            }}
-                        >
-                            Amount
-                        </th>
-
-                        <th
-                            style={{
-                                padding:
-                                    "15px",
-                                textAlign:
-                                    "left",
-                            }}
-                        >
-                            Date
-                        </th>
-
-                        <th
-                            style={{
-                                padding:
-                                    "15px",
-                                textAlign:
-                                    "left",
-                            }}
-                        >
-                            Actions
-                        </th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {expenses.map(
-                        (
-                            expense
-                        ) => (
-                            <tr
-                                key={
-                                    expense._id
-                                }
-                                style={{
-                                    borderBottom:
-                                        "1px solid #e5e7eb",
-                                }}
-                            >
-                                <td
-                                    style={{
-                                        padding:
-                                            "15px",
-                                    }}
-                                >
-                                    {
-                                        expense.description
-                                    }
-                                </td>
-
-                                <td
-                                    style={{
-                                        padding:
-                                            "15px",
-                                    }}
-                                >
-                                    $
-                                    {
-                                        expense.amount
-                                    }
-                                </td>
-
-                                <td
-                                    style={{
-                                        padding:
-                                            "15px",
-                                    }}
-                                >
-                                    {new Date(
-                                        expense.date
-                                    ).toLocaleDateString()}
-                                </td>
-
-                                <td
-                                    style={{
-                                        padding:
-                                            "15px",
-                                        display:
-                                            "flex",
-                                        gap: "10px",
-                                    }}
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleEdit(
-                                                expense
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "8px 12px",
-                                            cursor:
-                                                "pointer",
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleDelete(
-                                                expense._id
-                                            )
-                                        }
-                                        style={{
-                                            padding:
-                                                "8px 12px",
-                                            cursor:
-                                                "pointer",
-                                        }}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
+                <div className="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Fecha</th>
+                                <th style={{ textAlign: "right" }}>Monto</th>
+                                <th style={{ textAlign: "center" }}>Acciones</th>
                             </tr>
-                        )
-                    )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {expenses.length === 0 ? (
+                                <tr><td colSpan={5} style={{ textAlign: "center", color: "var(--text-3)", padding: 32 }}>Sin gastos registrados</td></tr>
+                            ) : expenses.map(expense => (
+                                <tr key={expense._id}>
+                                    <td style={{ fontWeight: 500 }}>{expense.description}</td>
+                                    <td>
+                                        <span className="badge badge-expense">{getCategoryName(expense)}</span>
+                                    </td>
+                                    <td style={{ color: "var(--text-2)" }}>{new Date(expense.date).toLocaleDateString("es-MX")}</td>
+                                    <td style={{ textAlign: "right", fontWeight: 600, color: "var(--danger)" }}>
+                                        -${expense.amount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                                    </td>
+                                    <td style={{ textAlign: "center" }}>
+                                        <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                                            <button className="btn btn-ghost btn-sm" onClick={() => handleEdit(expense)}>Editar</button>
+                                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(expense._id)}>Eliminar</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
