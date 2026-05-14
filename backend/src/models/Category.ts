@@ -65,7 +65,6 @@ const categorySchema = new Schema<ICategory>(
         name: {
             type: String,
             required: true,
-            unique: true,
             trim: true,
         },
         type: {
@@ -80,5 +79,8 @@ const categorySchema = new Schema<ICategory>(
     },
     { timestamps: true },
 );
+
+// Unique per name+type so "Otros" can exist for both income and expense
+categorySchema.index({ name: 1, type: 1 }, { unique: true });
 
 export const Category = model<ICategory>('Category', categorySchema);

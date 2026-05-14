@@ -66,14 +66,21 @@ function Sidebar() {
                 >
                     Saving Goals
                 </Link>
-            </nav>
 
-            <Link
-                to="/budgets"
-                style={linkStyle}
-            >
-                Budgets
-            </Link>
+                <Link
+                    to="/budgets"
+                    style={linkStyle}
+                >
+                    Budgets
+                </Link>
+
+                <Link
+                    to="/categories"
+                    style={linkStyle}
+                >
+                    Categorías
+                </Link>
+            </nav>
 
             <button
                 onClick={handleLogout}

@@ -1,6 +1,8 @@
 import { Response } from "express";
+import mongoose from "mongoose";
 import { Expense } from "../models/Expense";
 import { Income } from "../models/Income";
+import { SavingGoal } from "../models/SavingGoal";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 // ======================
@@ -8,25 +10,32 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 // ======================
 export const getSummary = async (req: AuthRequest, res: Response) => {
     try {
-        const userId = req.userId;
+        const userId = new mongoose.Types.ObjectId(req.userId);
 
-        const totalIncomeResult = await Income.aggregate([
-            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
-            { $group: { _id: null, total: { $sum: "$amount" } } },
-        ]);
-
-        const totalExpensesResult = await Expense.aggregate([
-            { $match: { userId: new (require("mongoose").Types.ObjectId)(userId) } },
-            { $group: { _id: null, total: { $sum: "$amount" } } },
+        const [totalIncomeResult, totalExpensesResult, totalSavedResult] = await Promise.all([
+            Income.aggregate([
+                { $match: { userId } },
+                { $group: { _id: null, total: { $sum: "$amount" } } },
+            ]),
+            Expense.aggregate([
+                { $match: { userId } },
+                { $group: { _id: null, total: { $sum: "$amount" } } },
+            ]),
+            SavingGoal.aggregate([
+                { $match: { userId } },
+                { $group: { _id: null, total: { $sum: "$currentAmount" } } },
+            ]),
         ]);
 
         const totalIncomes = totalIncomeResult[0]?.total || 0;
         const totalExpenses = totalExpensesResult[0]?.total || 0;
+        const totalSaved = totalSavedResult[0]?.total || 0;
 
         res.json({
             totalIncomes,
             totalExpenses,
-            balance: totalIncomes - totalExpenses,
+            totalSaved,
+            balance: totalIncomes - totalExpenses - totalSaved,
         });
     } catch (error) {
         console.error(error);

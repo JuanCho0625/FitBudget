@@ -16,7 +16,7 @@ export const getUserFinancialSummary = async (userId: string) => {
   const totalSaved = goals.reduce((acc, curr) => acc + (curr.currentAmount || 0), 0);
 
   return {
-    balance: totalIncome - totalExpense,
+    balance: totalIncome - totalExpense - totalSaved,
     totalIncome,
     totalExpense,
     totalSaved,

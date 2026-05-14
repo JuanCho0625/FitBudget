@@ -131,23 +131,22 @@ function DashboardPage() {
                         <div className="summary-container">
                             <SummaryCard
                                 title="Total Income"
-                                value={
-                                    summary.totalIncomes
-                                }
+                                value={summary.totalIncomes}
                             />
 
                             <SummaryCard
                                 title="Total Expenses"
-                                value={
-                                    summary.totalExpenses
-                                }
+                                value={summary.totalExpenses}
+                            />
+
+                            <SummaryCard
+                                title="Apartados"
+                                value={summary.totalSaved ?? 0}
                             />
 
                             <SummaryCard
                                 title="Balance"
-                                value={
-                                    summary.balance
-                                }
+                                value={summary.balance}
                             />
                         </div>
 

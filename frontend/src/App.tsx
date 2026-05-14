@@ -8,6 +8,7 @@ import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
 import SavingGoalsPage from "./pages/savingGoalsPage";
 import BudgetsPage from "./pages/BudgetsPage";
+import CategoriesPage from "./pages/CategoriesPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -60,6 +61,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <BudgetsPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/categories"
+                    element={
+                        <ProtectedRoute>
+                            <CategoriesPage />
                         </ProtectedRoute>
                     }
                 />
