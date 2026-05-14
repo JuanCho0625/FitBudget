@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-import { loginUser, GOOGLE_AUTH_URL } from "../services/authService";
+import { registerUser, GOOGLE_AUTH_URL } from "../services/authService";
 
-function LoginPage() {
+function RegisterPage() {
     const navigate = useNavigate();
 
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -18,12 +19,11 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            const data = await loginUser(email, password);
-            localStorage.setItem("token", data.token);
-            navigate("/dashboard");
+            await registerUser(name, email, password);
+            navigate("/");
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.message || "Error al iniciar sesión");
+                setError(err.response?.data?.message || "Error al registrarse");
             } else {
                 setError("Error inesperado. Intenta de nuevo.");
             }
@@ -35,9 +35,22 @@ function LoginPage() {
     return (
         <div style={{ maxWidth: 400, margin: "80px auto", padding: "0 20px" }}>
             <h1>FitBudget</h1>
-            <h2>Iniciar sesión</h2>
+            <h2>Crear cuenta</h2>
 
             <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: 16 }}>
+                    <label>Nombre</label>
+                    <br />
+                    <input
+                        type="text"
+                        placeholder="Tu nombre"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        style={{ width: "100%", padding: 8, marginTop: 4 }}
+                    />
+                </div>
+
                 <div style={{ marginBottom: 16 }}>
                     <label>Email</label>
                     <br />
@@ -56,10 +69,11 @@ function LoginPage() {
                     <br />
                     <input
                         type="password"
-                        placeholder="Tu contraseña"
+                        placeholder="Mínimo 6 caracteres"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        minLength={6}
                         style={{ width: "100%", padding: 8, marginTop: 4 }}
                     />
                 </div>
@@ -69,7 +83,7 @@ function LoginPage() {
                 )}
 
                 <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
-                    {loading ? "Entrando..." : "Iniciar sesión"}
+                    {loading ? "Creando cuenta..." : "Registrarse"}
                 </button>
             </form>
 
@@ -87,15 +101,15 @@ function LoginPage() {
                     color: "#333",
                 }}
             >
-                Iniciar sesión con Google
+                Registrarse con Google
             </a>
 
             <p style={{ textAlign: "center", marginTop: 20 }}>
-                ¿No tienes cuenta?{" "}
-                <Link to="/register">Regístrate aquí</Link>
+                ¿Ya tienes cuenta?{" "}
+                <Link to="/">Inicia sesión</Link>
             </p>
         </div>
     );
 }
 
-export default LoginPage;
+export default RegisterPage;

@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import DashboardPage from "./pages/DashboardPage";
 import ExpensesPage from "./pages/ExpensesPage";
 import IncomesPage from "./pages/IncomesPage";
-import SavingGoalsPage from "./pages/SavingGoalsPage";
+import SavingGoalsPage from "./pages/savingGoalsPage";
 import BudgetsPage from "./pages/BudgetsPage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -13,10 +15,9 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route
-                    path="/"
-                    element={<LoginPage />}
-                />
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
 
                 <Route
                     path="/dashboard"

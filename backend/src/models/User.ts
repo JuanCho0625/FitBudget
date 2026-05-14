@@ -36,6 +36,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  googleId?: string;
   role: 'ADMIN' | 'USER';
   createdAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -45,20 +46,21 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { 
-      type: String, 
+    password: { type: String, required: false, default: '' },
+    googleId: { type: String, required: false },
+    role: {
+      type: String,
       default: 'USER',
       enum: ['ADMIN', 'USER']
     }
   },
-  { 
-    timestamps: true 
+  {
+    timestamps: true
   }
 );
 
 userSchema.pre<IUser>('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);

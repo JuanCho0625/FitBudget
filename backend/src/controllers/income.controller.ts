@@ -1,6 +1,17 @@
 import { Response } from "express";
 import { Income } from "../models/Income";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { getUserFinancialSummary } from "../services/financialService";
+
+const emitDashboardUpdate = async (req: AuthRequest, userId: string) => {
+  try {
+    const io = req.app.get("io");
+    if (io) {
+      const summary = await getUserFinancialSummary(userId);
+      io.to(userId).emit("update-dashboard", summary);
+    }
+  } catch (_) { /* silent in tests */ }
+};
 
 // ======================
 // GET ALL INCOMES (del usuario)
@@ -90,6 +101,8 @@ export const createIncome = async (
 
     await income.save();
 
+    await emitDashboardUpdate(req, req.userId as string);
+
     res.status(201).json({ message: "Ingreso registrado correctamente", income });
   } catch (error) {
     res.status(500).json({ message: "Error al registrar ingreso" });
@@ -128,6 +141,8 @@ export const updateIncome = async (
 
     await income.save();
 
+    await emitDashboardUpdate(req, req.userId as string);
+
     res.json({ message: "Ingreso actualizado", income });
   } catch (error) {
     res.status(500).json({ message: "Error al actualizar ingreso" });
@@ -153,6 +168,9 @@ export const deleteIncome = async (
     }
 
     await income.deleteOne();
+
+    await emitDashboardUpdate(req, req.userId as string);
+
     res.json({ message: "Ingreso eliminado" });
   } catch (error) {
     res.status(500).json({ message: "Error al eliminar ingreso" });

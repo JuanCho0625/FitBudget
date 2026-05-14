@@ -83,25 +83,20 @@ function DashboardPage() {
                 "token"
             );
 
-        socket.auth = {
-            token,
-        };
-
+        socket.auth = { token };
         socket.connect();
 
-        socket.on(
-            "update-dashboard",
-            (data) => {
-                console.log(
-                    "Realtime update:",
-                    data
-                );
+        // Decode JWT to get userId and join the private room
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                socket.emit("join-user-room", payload.id);
+            } catch (_) {}
+        }
 
-                setSummary(data);
-
-                fetchDashboardData();
-            }
-        );
+        socket.on("update-dashboard", () => {
+            fetchDashboardData();
+        });
 
         return () => {
             socket.disconnect();
