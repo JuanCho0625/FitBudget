@@ -5,4 +5,6 @@ dist/
 backend/dist/
 
 .env
-backend/.env.claude/
+backend/.env
+
+.claude/
