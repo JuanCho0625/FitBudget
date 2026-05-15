@@ -1,9 +1,7 @@
+import "dotenv/config";
 import { httpServer } from "./app";
-
 import connectDB from "./config/db";
-
-import passport
-  from "./config/passport";
+import passport from "./config/passport";
 
 const PORT =
     process.env.PORT || 3000;
