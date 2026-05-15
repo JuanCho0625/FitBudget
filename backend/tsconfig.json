@@ -9,11 +9,13 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "outDir": "./dist",
-    "rootDir": "./" 
+    "rootDir": "./"
   },
   "include": [
-    "src/**/*", 
-    "tests/**/*" // <-- ASEGÚRATE DE QUE ESTO ESTÉ AQUÍ
+    "src/**/*"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "tests"
+  ]
 }
