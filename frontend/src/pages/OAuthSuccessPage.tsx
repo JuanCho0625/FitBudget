@@ -15,48 +15,19 @@ function OAuthSuccessPage() {
         useSearchParams();
 
     useEffect(() => {
-        const token =
-            searchParams.get(
-                "token"
-            );
-
-        console.log(
-            "TOKEN:",
-            token
-        );
+        const token = searchParams.get("token");
 
         if (token) {
-            localStorage.setItem(
-                "token",
-                token
-            );
-
-            navigate(
-                "/dashboard"
-            );
+            localStorage.setItem("token", token);
+            navigate("/dashboard", { replace: true });
         } else {
-            navigate(
-                "/?error=oauth_failed"
-            );
+            navigate("/?error=oauth_failed", { replace: true });
         }
     }, []);
 
     return (
-        <div
-            style={{
-                height: "100vh",
-                display: "flex",
-                justifyContent:
-                    "center",
-                alignItems:
-                    "center",
-                fontSize: "24px",
-                fontWeight:
-                    "bold",
-            }}
-        >
-            Logging in with
-            Google...
+        <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <p style={{ color: "var(--text-2)", fontSize: 15 }}>Autenticando con Google...</p>
         </div>
     );
 }

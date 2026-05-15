@@ -37,50 +37,23 @@ router.get(
 router.get(
     "/google/callback",
 
-    passport.authenticate(
-        "google",
-        {
-            session: false,
-            failureRedirect:
-                "/login",
-        }
-    ),
+    passport.authenticate("google", {
+        session: false,
+        failureRedirect: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/?error=oauth_failed`,
+    }),
 
-    async (req, res) => {
-        try {
-            const profile: any =
-                req.user;
+    (req, res) => {
+        const user: any = req.user;
 
-            const token =
-                jwt.sign(
-                    {
-                        email:
-                        profile.emails?.[0]
-                            ?.value,
-                    },
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET!,
+            { expiresIn: "1d" }
+        );
 
-                    process.env
-                        .JWT_SECRET!,
-
-                    {
-                        expiresIn:
-                            "7d",
-                    }
-                );
-
-            res.redirect(
-                `http://localhost:5173/oauth-success?token=${token}`
-            );
-        } catch (error) {
-            console.error(
-                error
-            );
-
-            res.status(500).json({
-                message:
-                    "OAuth error",
-            });
-        }
+        res.redirect(
+            `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/oauth-success?token=${token}`
+        );
     }
 );
 

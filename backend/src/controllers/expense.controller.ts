@@ -1,66 +1,97 @@
 import { Response } from "express";
 import { Expense } from "../models/Expense";
 import { Budget } from "../models/Budget";
+import { User } from "../models/User";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import mongoose from "mongoose";
+import { sendEmail } from "../services/email.service";
 
-// ======================
-// GET ALL EXPENSES (del usuario)
-// ======================
-export const getExpenses = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const getExpenses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { month, year, categoryId } = req.query;
-
     const filter: any = { userId: req.userId };
-
     if (month && year) {
       const start = new Date(Number(year), Number(month) - 1, 1);
-      const end = new Date(Number(year), Number(month), 1);
+      const end   = new Date(Number(year), Number(month), 1);
       filter.date = { $gte: start, $lt: end };
     }
-
-    if (categoryId) {
-      filter.categoryId = categoryId;
-    }
-
-    const expenses = await Expense.find(filter)
-      .populate("categoryId", "name color type")
-      .sort({ date: -1 });
-
+    if (categoryId) filter.categoryId = categoryId;
+    const expenses = await Expense.find(filter).populate("categoryId","name color type").sort({ date: -1 });
     res.json(expenses);
-  } catch (error) {
-    res.status(500).json({ message: "Error al obtener gastos" });
-  }
+  } catch (error) { res.status(500).json({ message: "Error al obtener gastos" }); }
 };
 
-// ======================
-// GET EXPENSE BY ID
-// ======================
- 
-export const getExpenseById = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const getExpenseById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const expense = await Expense.findOne({
-      _id: req.params.id,
-      userId: req.userId,
-    }).populate("categoryId", "name color type");
-
-    if (!expense) {
-      res.status(404).json({ message: "Gasto no encontrado" });
-      return; // <--- Return solo, sin devolver el objeto res
-    }
-
+    const expense = await Expense.findOne({ _id: req.params.id, userId: req.userId }).populate("categoryId","name color type");
+    if (!expense) { res.status(404).json({ message: "Gasto no encontrado" }); return; }
     res.json(expense);
-  } catch (error) {
-    if (error instanceof mongoose.Error.CastError) {
-        res.status(400).json({ message: "ID con formato inválido" });
-        return; // <--- Return solo
+  } catch (error) { res.status(500).json({ message: "Error al obtener gasto" }); }
+};
+
+export const createExpense = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { amount, description, date, categoryId } = req.body;
+    if (!amount || !description || !categoryId) {
+      res.status(400).json({ message: "Monto, descripción y categoría son obligatorios" }); return;
     }
-    res.status(500).json({ message: "Error al obtener gasto" });
-  }
+    if (amount <= 0) { res.status(400).json({ message: "El monto debe ser mayor a 0" }); return; }
+
+    const expense = new Expense({ amount, description, date: date || Date.now(), categoryId, userId: req.userId });
+    await expense.save();
+
+    // ── Verificar presupuesto ─────────────────────────────────────────────
+    const expenseDate = new Date(date || Date.now());
+    const month = expenseDate.getMonth() + 1;
+    const year  = expenseDate.getFullYear();
+    const budget = await Budget.findOne({ userId: req.userId, month, year });
+    let alertMessage: string | null = null;
+
+    if (budget) {
+      const start = new Date(year, month - 1, 1);
+      const end   = new Date(year, month, 1);
+      const result = await Expense.aggregate([
+        { $match: { userId: expense.userId, date: { $gte: start, $lt: end } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]);
+      const total      = result[0]?.total || 0;
+      const percentage = (total / budget.monthlyLimit) * 100;
+      const user       = await User.findById(req.userId);
+
+      if (percentage >= 100 && !budget.isAlerted) {
+        budget.isAlerted = true;
+        await budget.save();
+        alertMessage = "⚠️ Has superado tu presupuesto mensual";
+        if (user) await sendEmail(user.email, "budgetAlert", { userName: user.name, monthlyLimit: budget.monthlyLimit, totalSpent: total, percentageUsed: percentage, month, year });
+      } else if (percentage >= 80 && !budget.isAlerted) {
+        alertMessage = `⚠️ Has utilizado el ${percentage.toFixed(0)}% de tu presupuesto mensual`;
+        if (user) await sendEmail(user.email, "budgetAlert", { userName: user.name, monthlyLimit: budget.monthlyLimit, totalSpent: total, percentageUsed: percentage, month, year });
+      }
+    }
+
+    res.status(201).json({ message: "Gasto registrado correctamente", expense, ...(alertMessage && { alert: alertMessage }) });
+  } catch (error) { res.status(500).json({ message: "Error al registrar gasto" }); }
+};
+
+export const updateExpense = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { amount, description, date, categoryId } = req.body;
+    const expense = await Expense.findOne({ _id: req.params.id, userId: req.userId });
+    if (!expense) { res.status(404).json({ message: "Gasto no encontrado" }); return; }
+    if (amount !== undefined && amount <= 0) { res.status(400).json({ message: "El monto debe ser mayor a 0" }); return; }
+    if (amount !== undefined) expense.amount = amount;
+    if (description) expense.description = description;
+    if (date) expense.date = date;
+    if (categoryId) expense.categoryId = categoryId;
+    await expense.save();
+    res.json({ message: "Gasto actualizado", expense });
+  } catch (error) { res.status(500).json({ message: "Error al actualizar gasto" }); }
+};
+
+export const deleteExpense = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const expense = await Expense.findOne({ _id: req.params.id, userId: req.userId });
+    if (!expense) { res.status(404).json({ message: "Gasto no encontrado" }); return; }
+    await expense.deleteOne();
+    res.json({ message: "Gasto eliminado" });
+  } catch (error) { res.status(500).json({ message: "Error al eliminar gasto" }); }
 };
