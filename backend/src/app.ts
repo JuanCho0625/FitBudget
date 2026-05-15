@@ -20,7 +20,7 @@ const httpServer = createServer(app);
 // Middlewares
 app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin:  "https://fit-budget-coral.vercel.app",
     })
 );
 
@@ -29,7 +29,7 @@ app.use(Express.json());
 // Configurar socket.io
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://fit-budget-coral.vercel.app",
   },
 });
 
@@ -50,7 +50,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
 
     servers: [
       {
-        url: "http://localhost:3000",
+        url: "https://fitbudget.onrender.com",
       },
     ],
   },

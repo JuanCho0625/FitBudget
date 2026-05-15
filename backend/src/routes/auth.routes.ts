@@ -37,22 +37,40 @@ router.get(
 router.get(
     "/google/callback",
 
-    passport.authenticate("google", {
-        session: false,
-        failureRedirect: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/?error=oauth_failed`,
-    }),
+    passport.authenticate(
+        "google",
+        {
+            session: false,
+
+            failureRedirect:
+                process.env.FRONTEND_URL ??
+                "https://fit-budget-coral.vercel.app",
+        }
+    ),
 
     (req, res) => {
-        const user: any = req.user;
+        const user: any =
+            req.user;
 
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET!,
-            { expiresIn: "1d" }
-        );
+        const token =
+            jwt.sign(
+                {
+                    id: user._id,
+                    role:
+                    user.role,
+                },
+
+                process.env
+                    .JWT_SECRET!,
+
+                {
+                    expiresIn:
+                        "1d",
+                }
+            );
 
         res.redirect(
-            `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/oauth-success?token=${token}`
+            `${process.env.FRONTEND_URL ?? "https://fit-budget-coral.vercel.app"}/oauth-success?token=${token}`
         );
     }
 );
