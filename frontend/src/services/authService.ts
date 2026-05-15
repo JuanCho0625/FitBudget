@@ -12,4 +12,4 @@ export const registerUser = async (name: string, email: string, password: string
     return response.data;
 };
 
-export const GOOGLE_AUTH_URL = `${API_URL}/api/auth/google`;
+export const GOOGLE_AUTH_URL = `${API_URL}/google`;
