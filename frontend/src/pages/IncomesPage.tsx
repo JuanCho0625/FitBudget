@@ -3,12 +3,24 @@ import { getIncomes, createIncome, updateIncome, deleteIncome } from "../service
 import { getCategories } from "../services/categoryService";
 import Sidebar from "../components/Sidebar";
 
+function formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const yesterdayMid = new Date(todayMid);
+    yesterdayMid.setDate(yesterdayMid.getDate() - 1);
+    const dMid = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    if (dMid.getTime() === todayMid.getTime()) return "Hoy";
+    if (dMid.getTime() === yesterdayMid.getTime()) return "Ayer";
+    return d.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
 function IncomesPage() {
     const [incomes, setIncomes] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
-    const [date, setDate] = useState("");
     const [categoryId, setCategoryId] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [error, setError] = useState("");
@@ -26,7 +38,7 @@ function IncomesPage() {
     useEffect(() => { fetchData(); }, []);
 
     const resetForm = () => {
-        setDescription(""); setAmount(""); setDate("");
+        setDescription(""); setAmount("");
         setCategoryId(""); setEditingId(null); setError("");
     };
 
@@ -35,7 +47,7 @@ function IncomesPage() {
         setError("");
         if (!categoryId) { setError("Selecciona una categoría"); return; }
         try {
-            const payload = { description, amount: Number(amount), date, categoryId };
+            const payload = { description, amount: Number(amount), categoryId };
             if (editingId) {
                 await updateIncome(editingId, payload);
             } else {
@@ -52,7 +64,6 @@ function IncomesPage() {
         setEditingId(income._id);
         setDescription(income.description);
         setAmount(income.amount.toString());
-        setDate(income.date.split("T")[0]);
         setCategoryId(income.categoryId?._id ?? income.categoryId ?? "");
         setError("");
     };
@@ -82,10 +93,6 @@ function IncomesPage() {
                             <label className="form-label">Monto</label>
                             <input className="form-input" type="number" placeholder="0.00"
                                 value={amount} onChange={e => setAmount(e.target.value)} required min="0.01" step="0.01" />
-                        </div>
-                        <div className="form-field" style={{ maxWidth: 160 }}>
-                            <label className="form-label">Fecha</label>
-                            <input className="form-input" type="date" value={date} onChange={e => setDate(e.target.value)} />
                         </div>
                         <div className="form-field" style={{ maxWidth: 180 }}>
                             <label className="form-label">Categoría</label>
@@ -126,7 +133,7 @@ function IncomesPage() {
                                     <td>
                                         <span className="badge badge-income">{income.categoryId?.name ?? "—"}</span>
                                     </td>
-                                    <td style={{ color: "var(--text-2)" }}>{new Date(income.date).toLocaleDateString("es-MX")}</td>
+                                    <td style={{ color: "var(--text-2)" }}>{formatDate(income.date)}</td>
                                     <td style={{ textAlign: "right", fontWeight: 600, color: "var(--success)" }}>
                                         +${income.amount.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
                                     </td>
