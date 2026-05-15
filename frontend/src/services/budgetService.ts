@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-    "http://localhost:3000/api/budgets";
+    "https://fitbudget.onrender.com";
 
 const getAuthHeaders = () => {
     const token =

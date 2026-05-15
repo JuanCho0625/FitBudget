@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/categories";
+const API_URL = "https://fitbudget.onrender.com";
 
 const authHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
