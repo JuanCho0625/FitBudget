@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-    "http://localhost:3000/api/incomes";
+    "https://fitbudget.onrender.com/api/incomes";
 
 export const getIncomes = async () => {
     const token =

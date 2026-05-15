@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://fitbudget.onrender.com";
+const API_URL = "https://fitbudget.onrender.com/api/dashboard";
 
 export const getDashboardSummary = async () => {
     const token = localStorage.getItem("token");

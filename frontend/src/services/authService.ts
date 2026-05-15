@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://fitbudget.onrender.com";
+const API_URL = "https://fitbudget.onrender.com/api/auth";
 
 export const loginUser = async (email: string, password: string) => {
     const response = await axios.post(`${API_URL}/login`, { email, password });
